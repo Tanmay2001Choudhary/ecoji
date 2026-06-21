@@ -1,0 +1,113 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root, .theme-premium-eco {
+    --background: 42 41.7% 95.3%;
+    --foreground: 0 0% 17.6%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 17.6%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 17.6%;
+    --primary: 123 46.2% 33.5%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 40 44.9% 75.1%;
+    --secondary-foreground: 0 0% 17.6%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215 16.3% 46.9%;
+    --accent: 40 44.9% 75.1%;
+    --accent-foreground: 0 0% 17.6%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 214 31.8% 91.4%;
+    --input: 214 31.8% 91.4%;
+    --ring: 123 46.2% 33.5%;
+    --radius: 0.5rem;
+  }
+
+  .theme-modern-eco {
+    --background: 45 28.6% 97.3%;
+    --foreground: 0 0% 17.6%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 17.6%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 17.6%;
+    --primary: 129 27.9% 28.8%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 40 41.5% 74.5%;
+    --secondary-foreground: 0 0% 17.6%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215 16.3% 46.9%;
+    --accent: 40 41.5% 74.5%;
+    --accent-foreground: 0 0% 17.6%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 214 31.8% 91.4%;
+    --input: 214 31.8% 91.4%;
+    --ring: 129 27.9% 28.8%;
+    --radius: 0.5rem;
+  }
+
+  .theme-bamboo {
+    --background: 0 0% 100%;
+    --foreground: 15 25.3% 34.1%;
+    --card: 210 16.7% 97.6%;
+    --card-foreground: 15 25.3% 34.1%;
+    --popover: 210 16.7% 97.6%;
+    --popover-foreground: 15 25.3% 34.1%;
+    --primary: 122 39.4% 49.2%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 41 52.6% 81%;
+    --secondary-foreground: 15 25.3% 34.1%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215 16.3% 46.9%;
+    --accent: 41 52.6% 81%;
+    --accent-foreground: 15 25.3% 34.1%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 214 31.8% 91.4%;
+    --input: 214 31.8% 91.4%;
+    --ring: 122 39.4% 49.2%;
+    --radius: 0.5rem;
+  }
+
+  .theme-luxury-eco {
+    --background: 42 100% 95.3%;
+    --foreground: 0 0% 10.2%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 10.2%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 10.2%;
+    --primary: 155 42.6% 18.4%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 38 46.5% 60.4%;
+    --secondary-foreground: 0 0% 10.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215 16.3% 46.9%;
+    --accent: 38 46.5% 60.4%;
+    --accent-foreground: 0 0% 10.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 214 31.8% 91.4%;
+    --input: 214 31.8% 91.4%;
+    --ring: 155 42.6% 18.4%;
+    --radius: 0.5rem;
+  }
+
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply tracking-tight;
+  }
+  p {
+    @apply leading-relaxed;
+  }
+}

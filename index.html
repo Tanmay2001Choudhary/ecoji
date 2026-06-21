@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ecoji | Sustainable Living</title>
+    <script>
+      try {
+        const storeStr = localStorage.getItem('ecoji-storage')
+        if (storeStr) {
+          const store = JSON.parse(storeStr)
+          if (store.state && store.state.theme) {
+            document.documentElement.classList.add('theme-' + store.state.theme)
+          } else {
+            document.documentElement.classList.add('theme-premium-eco')
+          }
+          if (store.state && store.state.font) {
+            document.documentElement.style.setProperty('--font-sans', "'" + store.state.font + "', sans-serif")
+            const link = document.createElement('link')
+            link.href = 'https://fonts.googleapis.com/css2?family=' + store.state.font.replace(' ', '+') + ':wght@300;400;500;600;700&display=swap'
+            link.rel = 'stylesheet'
+            document.head.appendChild(link)
+          }
+        } else {
+          document.documentElement.classList.add('theme-premium-eco')
+        }
+      } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
