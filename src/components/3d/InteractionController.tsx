@@ -1,5 +1,4 @@
 import { useFrame } from '@react-three/fiber'
-import { use3DStore } from '@/store/use3DStore'
 import * as THREE from 'three'
 import { useRef } from 'react'
 
@@ -18,7 +17,6 @@ export const InteractionController = () => {
     
     // Dynamically increase leaf activity when user moves mouse aggressively
     const mouseVelocity = Math.abs(state.pointer.x) + Math.abs(state.pointer.y)
-    const baseActivity = use3DStore.getState().leafActivity
     
     // Store it in userData as well for non-reactive high-frequency reads
     state.scene.userData.leafActivityMultiplier = 1.0 + (mouseVelocity * 2.0)

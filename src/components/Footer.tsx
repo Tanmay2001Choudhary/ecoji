@@ -1,4 +1,4 @@
-import { Leaf, Camera, Share2, QrCode, Mail, Download, Link as LinkIcon, MapPin } from 'lucide-react'
+import { Leaf, Camera, Share2, QrCode, Mail, Download, Link as LinkIcon } from 'lucide-react'
 import QRCode from 'react-qr-code'
 import { buildUrl } from '@/lib/url'
 import { Link } from 'react-router-dom'

@@ -12,8 +12,6 @@ export const CustomCursor = () => {
   
   const [contextText, setContextText] = useState('')
   const [isHovering, setIsHovering] = useState(false)
-  const [isPointer, setIsPointer] = useState(false)
-  const [isVisible, setIsVisible] = useState(false)
 
   // Disable completely on touch devices
   const isTouchDevice = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0)
@@ -96,7 +94,7 @@ export const CustomCursor = () => {
       window.removeEventListener('mousedown', onMouseDown)
       window.removeEventListener('mouseup', onMouseUp)
     }
-  }, [cursorStyle, isTouchDevice, isVisible])
+  }, [cursorStyle, isTouchDevice])
 
   useEffect(() => {
     // Hide default cursor globally when active

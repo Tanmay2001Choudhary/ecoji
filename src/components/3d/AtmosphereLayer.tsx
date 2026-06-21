@@ -17,7 +17,7 @@ export const AtmosphereLayer = () => {
   return (
     <>
       {/* Layered Fog matching background color for infinite depth illusion */}
-      <fogExp2 ref={fogRef} attach="fog" color="#F8F5EE" density={0.04} />
+      <fogExp2 ref={fogRef} attach="fog" args={['#F8F5EE', 0.04]} />
       
       {/* Floating Pollen / Dust catching the sunlight */}
       <Sparkles 

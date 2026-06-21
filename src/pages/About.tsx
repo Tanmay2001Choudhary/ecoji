@@ -3,7 +3,7 @@ import { useRef } from 'react'
 import { useGSAP } from '@gsap/react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { Leaf, Globe, Zap, Heart } from 'lucide-react'
+import { Heart, Globe, Zap } from 'lucide-react'
 
 gsap.registerPlugin(ScrollTrigger)
 

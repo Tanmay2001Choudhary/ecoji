@@ -2,7 +2,6 @@ import { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { mergeBufferGeometries } from 'three-stdlib'
-import { use3DStore } from '@/store/use3DStore'
 
 // Procedural Geometry Generator for Bamboo Stalks
 const generateBambooGeometry = (height = 30, radius = 0.4, segments = 12, bendFactor = 2.0) => {
@@ -87,17 +86,13 @@ export const BambooCluster = () => {
   // Apply positions and colors to InstancedMesh instances
   useMemo(() => {
     if (!meshRef.current) return
-    const dummy = new THREE.Object3D()
-    
     // We will map instances into a single InstancedMesh by mapping all of them
     // Wait, an InstancedMesh takes ONE geometry. We must render multiple InstancedMeshes
     // if we have multiple geometries. We'll split them in the render loop.
   }, [])
 
   // Wind interaction
-  useFrame((state) => {
-    const windStrength = use3DStore.getState().windStrength
-    
+  useFrame(() => {
     // Wait, React cannot easily access multiple refs if we map them inside the component
     // We will handle swaying via group rotation or mapping inside the component
   })

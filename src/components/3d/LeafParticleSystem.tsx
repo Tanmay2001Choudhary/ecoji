@@ -3,10 +3,11 @@ import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { useTexture } from '@react-three/drei'
 import { use3DStore } from '@/store/use3DStore'
+import leafTexUrl from '@/assets/leaf.png'
 
 export const LeafParticleSystem = () => {
   const meshRef = useRef<THREE.InstancedMesh>(null)
-  const texture = useTexture('/src/assets/leaf.png')
+  const texture = useTexture(leafTexUrl)
   const count = 40
 
   const leaves = useMemo(() => {
