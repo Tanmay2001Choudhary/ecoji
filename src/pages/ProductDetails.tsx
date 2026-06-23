@@ -117,6 +117,16 @@ export const ProductDetailsPage = () => {
     return () => ctx.revert()
   }, [slug])
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <p className="text-muted-foreground text-xl">Loading product details...</p>
+      </div>
+    )
+  }
+
+  if (!product) return <Navigate to="/products" />
+
   const fullUrl = buildUrl(product.qrCodeLink)
 
   const handleShare = async () => {
@@ -154,16 +164,6 @@ export const ProductDetailsPage = () => {
     };
     img.src = "data:image/svg+xml;base64," + btoa(svgData);
   }
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <p className="text-muted-foreground text-xl">Loading product details...</p>
-      </div>
-    )
-  }
-
-  if (!product) return <Navigate to="/products" />
 
   return (
     <div ref={containerRef} className="bg-background min-h-screen">
