@@ -4,7 +4,7 @@ import { SceneManager } from './3d/SceneManager'
 
 export const Hero3D = () => {
   return (
-    <div className="absolute inset-0 z-0 pointer-events-auto overflow-hidden hidden md:block" data-cursor="interact">
+    <div className="absolute inset-0 z-0 pointer-events-auto overflow-hidden" data-cursor="interact">
       {/* 
         The Canvas manages the WebGL context.
         All storytelling, geometry, performance, and interaction logic

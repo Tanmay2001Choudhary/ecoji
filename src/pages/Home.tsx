@@ -84,7 +84,7 @@ export const HomePage = () => {
       </section>
 
       {/* Features */}
-      <section className="features-section py-32 bg-secondary/10 relative z-10 border-y border-border/50">
+      <section className="features-section py-16 md:py-32 bg-secondary/10 relative z-10 border-y border-border/50">
         <div className="container">
           <div className="grid md:grid-cols-3 gap-16 text-center">
             <div className="feature-card space-y-6 flex flex-col items-center p-8 rounded-3xl hover:bg-background transition-colors duration-500">
@@ -113,7 +113,7 @@ export const HomePage = () => {
       </section>
 
       {/* Featured Products */}
-      <section className="products-section py-32 bg-background relative z-10">
+      <section className="products-section py-16 md:py-32 bg-background relative z-10">
         <div className="container">
           <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
             <div>

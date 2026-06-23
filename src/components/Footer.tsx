@@ -72,9 +72,19 @@ export const Footer = () => {
                   const ctx = canvas.getContext("2d");
                   const img = new Image();
                   img.onload = () => {
-                    canvas.width = img.width;
-                    canvas.height = img.height;
-                    ctx?.drawImage(img, 0, 0);
+                    // Add quiet zone padding
+                    const padding = 20;
+                    canvas.width = img.width + padding * 2;
+                    canvas.height = img.height + padding * 2;
+                    
+                    if (ctx) {
+                      // Fill with white background
+                      ctx.fillStyle = "white";
+                      ctx.fillRect(0, 0, canvas.width, canvas.height);
+                      // Draw image in center
+                      ctx.drawImage(img, padding, padding);
+                    }
+                    
                     const pngFile = canvas.toDataURL("image/png");
                     const downloadLink = document.createElement("a");
                     downloadLink.download = "ecoji-qr.png";

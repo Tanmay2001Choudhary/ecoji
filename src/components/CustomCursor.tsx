@@ -113,26 +113,38 @@ export const CustomCursor = () => {
   if (isTouchDevice || cursorStyle === 'default') return null
 
   const showContext = (cursorStyle === 'context' || cursorStyle === 'premium') && isHovering && contextText
+  
+  // Design Logic based on cursorStyle
   const isEco = cursorStyle === 'eco'
+  const isPremium = cursorStyle === 'premium'
+  const isContext = cursorStyle === 'context'
 
   return (
     <div 
       ref={cursorRef} 
-      className="fixed inset-0 pointer-events-none z-[10000] mix-blend-difference"
+      className={`fixed inset-0 pointer-events-none z-[10000] ${isPremium || isContext ? 'mix-blend-difference' : ''}`}
       style={{ opacity: 0 }}
     >
-      {/* Inner Dot */}
+      {/* Inner Element */}
       <div 
         ref={dotRef} 
-        className="absolute top-0 left-0 w-2 h-2 -ml-1 -mt-1 rounded-full bg-white flex items-center justify-center"
+        className={`absolute top-0 left-0 flex items-center justify-center transition-colors duration-300
+          ${isEco ? '-ml-3 -mt-3 text-primary drop-shadow-[0_0_8px_rgba(76,175,80,0.8)]' : ''}
+          ${isPremium ? 'w-1 h-1 -ml-[2px] -mt-[2px] rounded-full bg-white' : ''}
+          ${isContext ? 'w-3 h-3 -ml-1.5 -mt-1.5 rounded-full bg-white' : ''}
+        `}
       >
-        {isEco && <Leaf className="w-4 h-4 text-white absolute" />}
+        {isEco && <Leaf className="w-6 h-6 fill-primary" />}
       </div>
 
       {/* Outer Ring / Context Box */}
       <div 
         ref={ringRef} 
-        className="absolute top-0 left-0 w-8 h-8 -ml-4 -mt-4 rounded-full border border-white flex items-center justify-center"
+        className={`absolute top-0 left-0 flex items-center justify-center transition-colors duration-300
+          ${isEco ? 'w-12 h-12 -ml-6 -mt-6 rounded-full border border-primary/50 bg-primary/5' : ''}
+          ${isPremium ? 'w-10 h-10 -ml-5 -mt-5 rounded-full border border-white' : ''}
+          ${isContext ? 'w-8 h-8 -ml-4 -mt-4 rounded-full border-2 border-white' : ''}
+        `}
       >
         <div 
           ref={contextRef}
