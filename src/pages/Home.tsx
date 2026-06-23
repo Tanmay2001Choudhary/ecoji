@@ -62,7 +62,7 @@ export const HomePage = () => {
         <Hero3D />
         
         {/* Radial Gradient to ensure text legibility while keeping 3D visible */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-background/40 via-background/10 to-transparent z-0" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-background/40 via-background/10 to-transparent z-0 pointer-events-none" />
 
         <div className="container relative z-10 text-center flex flex-col items-center justify-center pointer-events-none">
           <Badge variant="outline" className="hero-badge mb-10 px-6 py-2.5 border-primary/30 bg-background/50 backdrop-blur-md text-primary text-sm font-semibold tracking-widest uppercase shadow-sm">
@@ -115,7 +115,7 @@ export const HomePage = () => {
       {/* Featured Products */}
       <section className="products-section py-16 md:py-32 bg-background relative z-10">
         <div className="container">
-          <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
+          <div className="flex flex-col md:flex-row justify-between items-center md:items-end mb-16 gap-6 text-center md:text-left">
             <div>
               <h2 className="text-5xl font-bold mb-6 tracking-tight">Featured Essentials</h2>
               <p className="text-2xl font-light text-muted-foreground">The perfect starting point for your zero-waste journey.</p>

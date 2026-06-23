@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { Search, X } from 'lucide-react'
 import { products } from '@/config/products'
@@ -91,8 +92,8 @@ export const SearchBar = () => {
         <Search className="h-5 w-5" />
       </Button>
 
-      {isMobileOpen && (
-        <div className="fixed inset-0 z-[100] bg-background/95 backdrop-blur-xl flex flex-col animate-in fade-in duration-200">
+      {isMobileOpen && createPortal(
+        <div className="fixed inset-0 z-[1000] bg-background/95 backdrop-blur-xl flex flex-col animate-in fade-in duration-200">
           <div className="flex items-center gap-2 p-4 border-b">
             <Search className="h-5 w-5 text-muted-foreground" />
             <Input 
@@ -134,7 +135,8 @@ export const SearchBar = () => {
               </div>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )
