@@ -194,7 +194,7 @@ export const api = {
           categories(name),
           product_images(url, is_primary, display_order),
           product_faqs(*),
-          product_related(related_product_id),
+          product_related!product_related_product_id_fkey(related_product_id),
           affiliate_links(*)
         `)
         .eq('slug', slug)
