@@ -3,19 +3,42 @@ import { ProductCard } from '@/components/ProductCard'
 import { SEO } from '@/components/SEO'
 import { Badge } from '@/components/ui/badge'
 import { buttonVariants } from '@/components/ui/button'
-import { products } from '@/config/products'
+import { api } from '@/lib/api'
 import { cn } from '@/lib/utils'
 import { useGSAP } from '@gsap/react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { ArrowRight, Heart, Leaf as LeafIcon, ShieldCheck } from 'lucide-react'
-import { useRef } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 
 gsap.registerPlugin(ScrollTrigger)
 
 export const HomePage = () => {
   const containerRef = useRef<HTMLDivElement>(null)
+  const [products, setProducts] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setIsLoading(true)
+        const data = await api.public.getProducts()
+        const mappedData = data.map((p: any) => ({
+          ...p,
+          shortDescription: p.short_description,
+          category: p.categories?.name,
+          images: p.product_images?.map((img: any) => img.url) || []
+        }))
+        setProducts(mappedData.slice(0, 4)) // Take top 4 for featured
+      } catch (error) {
+        console.error('Error fetching featured products:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchData()
+  }, [])
 
   useGSAP(() => {
     // Hero Animations
@@ -125,11 +148,15 @@ export const HomePage = () => {
             </Link>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
-            {products.slice(0, 4).map(product => (
-              <div key={product.id} className="product-card-wrapper">
-                <ProductCard product={product} />
-              </div>
-            ))}
+            {isLoading ? (
+              <div className="col-span-full text-center py-10 text-muted-foreground">Loading featured products...</div>
+            ) : (
+              products.map(product => (
+                <div key={product.id} className="product-card-wrapper">
+                  <ProductCard product={product} />
+                </div>
+              ))
+            )}
           </div>
           <Link to="/products" className={cn(buttonVariants({ variant: "outline" }), "w-full mt-12 md:hidden text-center justify-center text-lg py-6 rounded-full")}>
             View All Products

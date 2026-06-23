@@ -1,6 +1,6 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useParams, Navigate } from 'react-router-dom'
-import { getProductBySlug, getRelatedProducts } from '@/config/products'
+import { api } from '@/lib/api'
 import { buildUrl } from '@/lib/url'
 import { shareContent } from '@/lib/share'
 import { SEO } from '@/components/SEO'
@@ -20,12 +20,60 @@ export const ProductDetailsPage = () => {
   const { slug } = useParams<{ slug: string }>()
   const containerRef = useRef<HTMLDivElement>(null)
   
-  if (!slug) return <Navigate to="/products" />
+  const [product, setProduct] = useState<any>(null)
+  const [relatedProducts, setRelatedProducts] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
   
-  const product = getProductBySlug(slug)
-  if (!product) return <Navigate to="/products" />
+  useEffect(() => {
+    if (!slug) return
+    const fetchProduct = async () => {
+      try {
+        setIsLoading(true)
+        const data = await api.public.getProductBySlug(slug)
+        
+        // Map to expected format
+        const mappedData = {
+          ...data,
+          category: data.categories?.name,
+          shortDescription: data.short_description,
+          fullDescription: data.full_description,
+          gallery: data.product_images?.sort((a: any, b: any) => a.display_order - b.display_order).map((img: any) => img.url) || [],
+          benefits: data.benefits || [],
+          specifications: data.specifications || {},
+          ingredientsOrMaterials: data.ingredients_materials || [],
+          usageInstructions: data.usage_instructions || [],
+          maintenanceInstructions: data.maintenance_instructions || [],
+          sustainabilityImpact: data.sustainability_impact || '',
+          faqs: data.product_faqs?.sort((a: any, b: any) => a.display_order - b.display_order) || [],
+          seoMetadata: {
+            title: data.seo_title,
+            description: data.seo_description
+          },
+          qrCodeLink: `/product/${data.slug}`
+        }
+        setProduct(mappedData)
 
-  const relatedProducts = getRelatedProducts(product.relatedProducts)
+        // Fetch related products
+        const relatedIds = data.product_related?.map((r: any) => r.related_product_id) || []
+        if (relatedIds.length > 0) {
+          const relatedData = await api.public.getProductsByIds(relatedIds)
+          setRelatedProducts(relatedData.map((p: any) => ({
+            ...p,
+            shortDescription: p.short_description,
+            category: p.categories?.name,
+            images: p.product_images?.map((img: any) => img.url) || []
+          })))
+        } else {
+          setRelatedProducts([])
+        }
+      } catch (error) {
+        console.error('Error fetching product details:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchProduct()
+  }, [slug])
 
   // GSAP Animations
   useEffect(() => {
@@ -106,6 +154,16 @@ export const ProductDetailsPage = () => {
     };
     img.src = "data:image/svg+xml;base64," + btoa(svgData);
   }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <p className="text-muted-foreground text-xl">Loading product details...</p>
+      </div>
+    )
+  }
+
+  if (!product) return <Navigate to="/products" />
 
   return (
     <div ref={containerRef} className="bg-background min-h-screen">

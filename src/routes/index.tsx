@@ -24,6 +24,7 @@ const AdminSettings = lazy(() => import('@/admin/pages/Settings').then(m => ({ d
 const AdminContacts = lazy(() => import('@/admin/pages/Contacts').then(m => ({ default: m.ContactsList })))
 const AdminThemes = lazy(() => import('@/admin/pages/Themes').then(m => ({ default: m.ThemesList })))
 const AdminFonts = lazy(() => import('@/admin/pages/Fonts').then(m => ({ default: m.FontsList })))
+const AdminAffiliates = lazy(() => import('@/admin/pages/Affiliates').then(m => ({ default: m.AffiliatesList })))
 
 const LoadingScreen = () => (
   <div className="min-h-[70vh] flex items-center justify-center">
@@ -79,6 +80,7 @@ const router = createBrowserRouter([
               { path: "contacts", element: withSuspense(AdminContacts) },
               { path: "themes", element: withSuspense(AdminThemes) },
               { path: "fonts", element: withSuspense(AdminFonts) },
+              { path: "affiliates", element: withSuspense(AdminAffiliates) },
             ]
           }
         ]

@@ -130,5 +130,124 @@ export const api = {
       if (error) throw error
       return data
     }
+  },
+  affiliates: {
+    async list() {
+      const { data, error } = await supabase
+        .from('affiliate_links')
+        .select(`
+          *,
+          products(name)
+        `)
+        .order('created_at', { ascending: false })
+      if (error) throw error
+      return data
+    },
+    async create(affiliate: any) {
+      const { data, error } = await supabase
+        .from('affiliate_links')
+        .insert(affiliate)
+        .select()
+        .single()
+      if (error) throw error
+      return data
+    },
+    async update(id: string, affiliate: any) {
+      const { data, error } = await supabase
+        .from('affiliate_links')
+        .update(affiliate)
+        .eq('id', id)
+        .select()
+        .single()
+      if (error) throw error
+      return data
+    },
+    async delete(id: string) {
+      const { error } = await supabase
+        .from('affiliate_links')
+        .delete()
+        .eq('id', id)
+      if (error) throw error
+    }
+  },
+  public: {
+    async getProducts() {
+      const { data, error } = await supabase
+        .from('products')
+        .select(`
+          *,
+          categories(name),
+          product_images(url, is_primary)
+        `)
+        .eq('status', 'PUBLISHED')
+        .is('deleted_at', null)
+        .order('display_order', { ascending: true })
+      
+      if (error) throw error
+      return data
+    },
+    async getProductBySlug(slug: string) {
+      const { data, error } = await supabase
+        .from('products')
+        .select(`
+          *,
+          categories(name),
+          product_images(url, is_primary, display_order),
+          product_faqs(*),
+          product_related(related_product_id),
+          affiliate_links(*)
+        `)
+        .eq('slug', slug)
+        .eq('status', 'PUBLISHED')
+        .is('deleted_at', null)
+        .single()
+      
+      if (error) throw error
+      return data
+    },
+    async getCategories() {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('*')
+        .eq('is_active', true)
+        .order('display_order', { ascending: true })
+      
+      if (error) throw error
+      return data
+    },
+    async getProductsByIds(ids: string[]) {
+      if (ids.length === 0) return []
+      const { data, error } = await supabase
+        .from('products')
+        .select(`
+          *,
+          categories(name),
+          product_images(url, is_primary)
+        `)
+        .in('id', ids)
+        .eq('status', 'PUBLISHED')
+        .is('deleted_at', null)
+      
+      if (error) throw error
+      return data
+    },
+    async searchProducts(query: string) {
+      if (!query.trim()) return []
+      
+      const { data, error } = await supabase
+        .from('products')
+        .select(`
+          *,
+          categories(name),
+          product_images(url, is_primary)
+        `)
+        .eq('status', 'PUBLISHED')
+        .is('deleted_at', null)
+        .or(`name.ilike.%${query}%,short_description.ilike.%${query}%,full_description.ilike.%${query}%`)
+        .order('display_order', { ascending: true })
+      
+      if (error) throw error
+      return data
+    }
   }
 }

@@ -1,18 +1,45 @@
-import { useState } from 'react'
-import { products } from '@/config/products'
+import { useState, useEffect } from 'react'
+import { Search, Loader2 } from 'lucide-react'
 import { ProductCard } from '@/components/ProductCard'
 import { SEO } from '@/components/SEO'
-import { Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { api } from '@/lib/api'
 
 export const ProductsPage = () => {
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('All')
+  const [products, setProducts] = useState<any[]>([])
+  const [categories, setCategories] = useState<string[]>(['All'])
+  const [isLoading, setIsLoading] = useState(true)
 
-  const categories = ['All', ...Array.from(new Set(products.map(p => p.category)))]
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setIsLoading(true)
+        const data = await api.public.getProducts()
+        
+        // Map data to expected format for ProductCard (temporary compatibility layer)
+        const mappedData = data.map((p: any) => ({
+          ...p,
+          shortDescription: p.short_description,
+          category: p.categories?.name,
+          images: p.product_images?.map((img: any) => img.url) || []
+        }))
+        setProducts(mappedData)
+
+        const uniqueCats = Array.from(new Set(mappedData.map((p: any) => p.category).filter(Boolean))) as string[]
+        setCategories(['All', ...uniqueCats])
+      } catch (error) {
+        console.error('Error fetching products:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchData()
+  }, [])
 
   const filteredProducts = products.filter(p => {
-    const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase()) || p.shortDescription.toLowerCase().includes(search.toLowerCase())
+    const matchesSearch = p.name?.toLowerCase().includes(search.toLowerCase()) || p.shortDescription?.toLowerCase().includes(search.toLowerCase())
     const matchesCategory = category === 'All' || p.category === category
     return matchesSearch && matchesCategory
   })
@@ -63,7 +90,11 @@ export const ProductsPage = () => {
         </div>
 
         {/* Product Grid */}
-        {filteredProducts.length > 0 ? (
+        {isLoading ? (
+          <div className="flex justify-center py-32">
+            <Loader2 className="h-12 w-12 animate-spin text-primary" />
+          </div>
+        ) : filteredProducts.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10">
             {filteredProducts.map(product => (
               <ProductCard key={product.id} product={product} />

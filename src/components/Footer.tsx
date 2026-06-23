@@ -2,6 +2,8 @@ import { Leaf, Camera, Share2, QrCode, Mail, Download, Link as LinkIcon } from '
 import QRCode from 'react-qr-code'
 import { buildUrl } from '@/lib/url'
 import { Link } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { api } from '@/lib/api'
 
 const WhatsAppIcon = ({ className }: { className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none" className={className}>
@@ -12,6 +14,19 @@ const WhatsAppIcon = ({ className }: { className?: string }) => (
 
 export const Footer = () => {
   const siteUrl = buildUrl('/')
+  const [products, setProducts] = useState<any[]>([])
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const data = await api.public.getProducts()
+        setProducts(data.slice(0, 4))
+      } catch (err) {
+        console.error('Failed to load products for footer', err)
+      }
+    }
+    fetchProducts()
+  }, [])
 
   return (
     <footer className="bg-secondary text-secondary-foreground py-12 border-t">
@@ -28,10 +43,16 @@ export const Footer = () => {
         <div>
           <h3 className="font-semibold mb-4">Products</h3>
           <ul className="space-y-2 text-sm">
-            <li><Link to="/products/bamboo-toothbrush" className="hover:text-primary transition-colors">Bamboo Toothbrush</Link></li>
-            <li><Link to="/products/neem-comb" className="hover:text-primary transition-colors">Neem Comb</Link></li>
-            <li><Link to="/products/natural-loofah" className="hover:text-primary transition-colors">Natural Loofah</Link></li>
-            <li><Link to="/products/bamboo-cotton-earbuds" className="hover:text-primary transition-colors">Cotton Earbuds</Link></li>
+            {products.map(product => (
+              <li key={product.id}>
+                <Link to={`/products/${product.slug}`} className="hover:text-primary transition-colors">
+                  {product.name}
+                </Link>
+              </li>
+            ))}
+            {products.length === 0 && (
+              <li className="text-muted-foreground italic">Loading...</li>
+            )}
           </ul>
         </div>
         <div>
