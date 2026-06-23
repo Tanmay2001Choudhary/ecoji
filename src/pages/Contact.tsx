@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Mail, MapPin, MessageSquare, ArrowRight } from 'lucide-react'
-import { useRef } from 'react'
+import { Mail, MapPin, MessageSquare, ArrowRight, Phone } from 'lucide-react'
+import { useRef, useState, useEffect } from 'react'
+import { api } from '@/lib/api'
 import { useGSAP } from '@gsap/react'
 import gsap from 'gsap'
 
@@ -25,6 +26,24 @@ const faqs = [
 
 export const ContactPage = () => {
   const containerRef = useRef<HTMLDivElement>(null)
+  const [contacts, setContacts] = useState<any[]>([])
+
+  useEffect(() => {
+    const fetchContacts = async () => {
+      try {
+        const data = await api.contacts.list()
+        setContacts(data)
+      } catch (err) {
+        console.error('Failed to load contacts', err)
+      }
+    }
+    fetchContacts()
+  }, [])
+
+  // Organize contacts by type
+  const emailContact = contacts.find(c => c.type === 'EMAIL') || { label: 'Email Us', value: 'ecoji.office@gmail.com', url: 'mailto:ecoji.office@gmail.com' }
+  const phoneContact = contacts.find(c => c.type === 'PHONE') || { label: 'WhatsApp / Call', value: '+91 7976474123', url: 'https://wa.me/917976474123' }
+  const addressContact = contacts.find(c => c.type === 'ADDRESS') || { label: 'Office', value: '271, Ward 29, Manikya Nagar\nBhilwara - 311001 (Rajasthan)\nIndia' }
 
   useGSAP(() => {
     const ctx = gsap.context(() => {
@@ -54,31 +73,29 @@ export const ContactPage = () => {
         <div className="grid lg:grid-cols-5 gap-12 lg:gap-24 items-start mb-32">
           {/* Contact Info Cards */}
           <div className="contact-card lg:col-span-2 flex flex-col gap-6">
-            <a href="mailto:ecoji.office@gmail.com" className="group p-8 rounded-[2rem] bg-secondary/20 hover:bg-secondary/40 border border-border/50 hover:border-primary/30 transition-all duration-300" data-cursor="interact">
+            <a href={emailContact.url || `mailto:${emailContact.value}`} className="group p-8 rounded-[2rem] bg-secondary/20 hover:bg-secondary/40 border border-border/50 hover:border-primary/30 transition-all duration-300" data-cursor="interact">
               <Mail className="w-8 h-8 text-primary mb-6" />
-              <h3 className="text-2xl font-bold mb-2">Email Us</h3>
+              <h3 className="text-2xl font-bold mb-2">{emailContact.label}</h3>
               <p className="text-muted-foreground mb-6">For general inquiries and support.</p>
               <div className="flex items-center text-primary font-medium group-hover:translate-x-2 transition-transform">
-                ecoji.office@gmail.com <ArrowRight className="w-4 h-4 ml-2" />
+                {emailContact.value} <ArrowRight className="w-4 h-4 ml-2" />
               </div>
             </a>
 
-            <a href="https://wa.me/917976474123" target="_blank" rel="noopener noreferrer" className="group p-8 rounded-[2rem] bg-secondary/20 hover:bg-secondary/40 border border-border/50 hover:border-primary/30 transition-all duration-300" data-cursor="interact">
+            <a href={phoneContact.url || `tel:${phoneContact.value.replace(/[^0-9+]/g, '')}`} target="_blank" rel="noopener noreferrer" className="group p-8 rounded-[2rem] bg-secondary/20 hover:bg-secondary/40 border border-border/50 hover:border-primary/30 transition-all duration-300" data-cursor="interact">
               <WhatsAppIcon className="w-8 h-8 text-primary mb-6" />
-              <h3 className="text-2xl font-bold mb-2">WhatsApp / Call</h3>
+              <h3 className="text-2xl font-bold mb-2">{phoneContact.label}</h3>
               <p className="text-muted-foreground mb-6">Mon-Fri from 9am to 6pm IST.</p>
               <div className="flex items-center text-primary font-medium group-hover:translate-x-2 transition-transform">
-                +91 7976474123 <ArrowRight className="w-4 h-4 ml-2" />
+                {phoneContact.value} <ArrowRight className="w-4 h-4 ml-2" />
               </div>
             </a>
 
             <div className="p-8 rounded-[2rem] bg-secondary/20 border border-border/50">
               <MapPin className="w-8 h-8 text-primary mb-6" />
-              <h3 className="text-2xl font-bold mb-2">Office</h3>
-              <p className="text-muted-foreground leading-relaxed">
-                271, Ward 29, Manikya Nagar<br/>
-                Bhilwara - 311001 (Rajasthan)<br/>
-                India
+              <h3 className="text-2xl font-bold mb-2">{addressContact.label}</h3>
+              <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                {addressContact.value}
               </p>
             </div>
           </div>

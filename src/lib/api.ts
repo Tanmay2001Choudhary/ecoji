@@ -115,6 +115,11 @@ export const api = {
 
       if (error) throw error
       return data
+    },
+    async create(contact: any) {
+      const { data, error } = await supabase.from('contacts').insert(contact).select().single()
+      if (error) throw error
+      return data
     }
   },
   themes: {
@@ -122,11 +127,21 @@ export const api = {
       const { data, error } = await supabase.from('themes').select('*').order('created_at', { ascending: true })
       if (error) throw error
       return data
+    },
+    async create(theme: any) {
+      const { data, error } = await supabase.from('themes').insert(theme).select().single()
+      if (error) throw error
+      return data
     }
   },
   fonts: {
     async list() {
       const { data, error } = await supabase.from('fonts').select('*').order('created_at', { ascending: true })
+      if (error) throw error
+      return data
+    },
+    async create(font: any) {
+      const { data, error } = await supabase.from('fonts').insert(font).select().single()
       if (error) throw error
       return data
     }

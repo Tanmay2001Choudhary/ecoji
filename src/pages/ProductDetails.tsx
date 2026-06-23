@@ -45,6 +45,7 @@ export const ProductDetailsPage = () => {
           maintenanceInstructions: data.maintenance_instructions || [],
           sustainabilityImpact: data.sustainability_impact || '',
           faqs: data.product_faqs?.sort((a: any, b: any) => a.display_order - b.display_order) || [],
+          affiliates: data.affiliate_links?.filter((a: any) => a.is_active) || [],
           seoMetadata: {
             title: data.seo_title,
             description: data.seo_description
@@ -193,10 +194,30 @@ export const ProductDetailsPage = () => {
               
               {/* Actions */}
               <div className="flex flex-col gap-4">
-                <Button size="lg" className="w-full text-lg h-16 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-primary text-primary-foreground" onClick={() => document.getElementById('story-section')?.scrollIntoView({ behavior: 'smooth' })}>
-                  Discover Story
-                </Button>
-                <Button size="lg" variant="outline" className="w-full text-lg h-16 rounded-full border-2 hover:bg-secondary/50 transition-all duration-300" onClick={handleShare}>
+                {product.affiliates?.length > 0 ? (
+                  <>
+                    <h4 className="text-sm font-semibold tracking-wider uppercase text-muted-foreground mb-2">Available On</h4>
+                    <div className="grid grid-cols-2 gap-3">
+                      {product.affiliates.map((aff: any) => (
+                        <Button 
+                          key={aff.id} 
+                          size="lg" 
+                          variant="default" 
+                          className="w-full text-base h-14 rounded-xl shadow-md hover:shadow-lg transition-all duration-300" 
+                          onClick={() => window.open(aff.url, '_blank', 'noopener,noreferrer')}
+                        >
+                          {aff.platform}
+                        </Button>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <Button size="lg" className="w-full text-lg h-16 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-primary text-primary-foreground" onClick={() => document.getElementById('story-section')?.scrollIntoView({ behavior: 'smooth' })}>
+                    Discover Story
+                  </Button>
+                )}
+                
+                <Button size="lg" variant="outline" className="w-full text-lg h-16 rounded-full border-2 hover:bg-secondary/50 transition-all duration-300 mt-2" onClick={handleShare}>
                   <Share2 className="mr-2 h-5 w-5" /> Share Product
                 </Button>
               </div>
