@@ -63,7 +63,7 @@ export const api = {
     },
     async uploadImage(file: File, productId: string) {
       const fileName = `${productId}/${Date.now()}-${file.name}`
-      const { data, error } = await supabase.storage
+      const { error } = await supabase.storage
         .from('products')
         .upload(fileName, file)
 
@@ -111,15 +111,25 @@ export const api = {
       const { data, error } = await supabase
         .from('contacts')
         .select('*')
-        .order('created_at', { ascending: false })
+        .order('display_order', { ascending: true })
 
       if (error) throw error
       return data
     },
     async create(contact: any) {
-      const { data, error } = await supabase.from('contacts').insert(contact).select().single()
+      const payload = { is_active: true, ...contact }
+      const { data, error } = await supabase.from('contacts').insert(payload).select().single()
       if (error) throw error
       return data
+    },
+    async update(id: string, updates: any) {
+      const { data, error } = await supabase.from('contacts').update(updates).eq('id', id).select().single()
+      if (error) throw error
+      return data
+    },
+    async delete(id: string) {
+      const { error } = await supabase.from('contacts').delete().eq('id', id)
+      if (error) throw error
     }
   },
   themes: {
@@ -129,9 +139,19 @@ export const api = {
       return data
     },
     async create(theme: any) {
-      const { data, error } = await supabase.from('themes').insert(theme).select().single()
+      const payload = { is_active: true, ...theme }
+      const { data, error } = await supabase.from('themes').insert(payload).select().single()
       if (error) throw error
       return data
+    },
+    async update(id: string, updates: any) {
+      const { data, error } = await supabase.from('themes').update(updates).eq('id', id).select().single()
+      if (error) throw error
+      return data
+    },
+    async delete(id: string) {
+      const { error } = await supabase.from('themes').delete().eq('id', id)
+      if (error) throw error
     }
   },
   fonts: {
@@ -141,9 +161,19 @@ export const api = {
       return data
     },
     async create(font: any) {
-      const { data, error } = await supabase.from('fonts').insert(font).select().single()
+      const payload = { is_active: true, ...font }
+      const { data, error } = await supabase.from('fonts').insert(payload).select().single()
       if (error) throw error
       return data
+    },
+    async update(id: string, updates: any) {
+      const { data, error } = await supabase.from('fonts').update(updates).eq('id', id).select().single()
+      if (error) throw error
+      return data
+    },
+    async delete(id: string) {
+      const { error } = await supabase.from('fonts').delete().eq('id', id)
+      if (error) throw error
     }
   },
   affiliates: {

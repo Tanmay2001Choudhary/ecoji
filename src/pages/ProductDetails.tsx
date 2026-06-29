@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useParams, Navigate } from 'react-router-dom'
 import { api } from '@/lib/api'
 import { buildUrl } from '@/lib/url'
-import { shareContent } from '@/lib/share'
+import { shareQRCode } from '@/lib/share'
 import { SEO } from '@/components/SEO'
 import { ProductCard } from '@/components/ProductCard'
 import { ProductGallery } from '@/components/ProductGallery'
@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button'
 import { Leaf, Share2, Copy, Download, ShieldCheck, Heart, QrCode } from 'lucide-react'
 import QRCode from 'react-qr-code'
 import gsap from 'gsap'
+import { useGSAP } from '@gsap/react'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
 gsap.registerPlugin(ScrollTrigger)
@@ -50,7 +51,7 @@ export const ProductDetailsPage = () => {
             title: data.seo_title,
             description: data.seo_description
           },
-          qrCodeLink: `/product/${data.slug}`
+          qrCodeLink: `/products/${data.slug}`
         }
         setProduct(mappedData)
 
@@ -77,46 +78,48 @@ export const ProductDetailsPage = () => {
   }, [slug])
 
   // GSAP Animations
-  useEffect(() => {
-    if (!containerRef.current) return
-    const ctx = gsap.context(() => {
-      gsap.from('.gallery-thumbnails button', {
-        y: 30,
-        opacity: 0,
-        stagger: 0.1,
-        duration: 0.8,
-        ease: 'power3.out',
-        scrollTrigger: {
-          trigger: '.gallery-container',
-          start: 'top 80%',
-        }
-      })
-      gsap.from('.gallery-main', {
-        scale: 0.95,
-        opacity: 0,
-        duration: 1,
-        ease: 'power3.out',
-        scrollTrigger: {
-          trigger: '.gallery-container',
-          start: 'top 80%',
-        }
-      })
-      
-      gsap.utils.toArray('.content-section').forEach((section: any) => {
-        gsap.from(section, {
-          y: 40,
-          opacity: 0,
+  useGSAP(() => {
+    if (isLoading || !product) return
+
+    gsap.from('.gallery-thumbnails button', {
+      y: 30,
+      opacity: 0,
+      stagger: 0.1,
+      duration: 0.8,
+      ease: 'power3.out',
+      scrollTrigger: {
+        trigger: '.gallery-container',
+        start: 'top 80%',
+      }
+    })
+    gsap.from('.gallery-main', {
+      scale: 0.95,
+      opacity: 0,
+      duration: 1,
+      ease: 'power3.out',
+      scrollTrigger: {
+        trigger: '.gallery-container',
+        start: 'top 80%',
+      }
+    })
+    
+    gsap.utils.toArray('.content-section').forEach((section: any) => {
+      gsap.fromTo(section,
+        { y: 40, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
           duration: 1,
           ease: 'power3.out',
           scrollTrigger: {
             trigger: section,
             start: 'top 85%',
+            toggleActions: 'play none none none'
           }
-        })
-      })
-    }, containerRef)
-    return () => ctx.revert()
-  }, [slug])
+        }
+      )
+    })
+  }, { scope: containerRef, dependencies: [isLoading, product] })
 
   if (isLoading) {
     return (
@@ -130,16 +133,14 @@ export const ProductDetailsPage = () => {
 
   const fullUrl = buildUrl(product.qrCodeLink)
 
-  const handleShare = async () => {
-    const shared = await shareContent(
-      `Ecoji - ${product.name}`,
-      product.shortDescription,
-      fullUrl
-    )
-    if (!shared) {
-      navigator.clipboard.writeText(fullUrl)
-      // Could show toast here
-    }
+  const handleShare = () => {
+    shareQRCode({
+      elementId: "ProductQRCode",
+      filename: `${product.slug}-qr.png`,
+      title: `Ecoji - ${product.name}`,
+      text: product.shortDescription,
+      url: fullUrl
+    })
   }
 
   const copyLink = () => {
@@ -228,7 +229,7 @@ export const ProductDetailsPage = () => {
                   <AccordionTrigger className="text-lg font-semibold hover:no-underline py-4">Highlights</AccordionTrigger>
                   <AccordionContent className="text-muted-foreground space-y-3 pb-6">
                     <ul className="list-disc pl-5 space-y-2">
-                      {product.benefits.map((benefit, idx) => (
+                      {product.benefits?.map((benefit: any, idx: number) => (
                         <li key={idx} className="text-base font-light leading-relaxed">{benefit}</li>
                       ))}
                     </ul>
@@ -238,10 +239,10 @@ export const ProductDetailsPage = () => {
                   <AccordionTrigger className="text-lg font-semibold hover:no-underline py-4">Specifications</AccordionTrigger>
                   <AccordionContent className="text-muted-foreground pb-6">
                     <dl className="space-y-4">
-                      {Object.entries(product.specifications).map(([key, value]) => (
+                      {product.specifications && Object.entries(product.specifications).map(([key, value]: [string, any]) => (
                         <div key={key} className="grid grid-cols-3 border-b border-border/30 pb-3">
                           <dt className="font-medium text-foreground">{key}</dt>
-                          <dd className="col-span-2 font-light">{value}</dd>
+                          <dd className="col-span-2 font-light">{String(value)}</dd>
                         </div>
                       ))}
                     </dl>
@@ -297,7 +298,7 @@ export const ProductDetailsPage = () => {
               <h2 className="text-4xl font-bold tracking-tight leading-tight">Sustainability Impact</h2>
               <p className="text-xl leading-relaxed text-muted-foreground font-light">{product.sustainabilityImpact}</p>
               <div className="pt-4 flex flex-wrap gap-3">
-                {product.ingredientsOrMaterials.map((mat, idx) => (
+                {product.ingredientsOrMaterials?.map((mat: any, idx: number) => (
                   <Badge key={idx} variant="outline" className="px-5 py-2.5 text-base font-normal rounded-full bg-secondary/30 border-secondary backdrop-blur-sm">{mat}</Badge>
                 ))}
               </div>
@@ -311,13 +312,13 @@ export const ProductDetailsPage = () => {
                  <div>
                    <h4 className="text-lg font-medium text-foreground mb-4 flex items-center gap-3"><Heart className="w-5 h-5 text-primary" /> How to Use</h4>
                    <ul className="list-disc pl-6 text-muted-foreground space-y-2 font-light text-lg leading-relaxed">
-                     {product.usageInstructions.map((inst, i) => <li key={i}>{inst}</li>)}
+                     {product.usageInstructions?.map((inst: any, i: number) => <li key={i}>{inst}</li>)}
                    </ul>
                  </div>
                  <div>
                    <h4 className="text-lg font-medium text-foreground mb-4 flex items-center gap-3"><ShieldCheck className="w-5 h-5 text-primary" /> Maintenance</h4>
                    <ul className="list-disc pl-6 text-muted-foreground space-y-2 font-light text-lg leading-relaxed">
-                     {product.maintenanceInstructions.map((inst, i) => <li key={i}>{inst}</li>)}
+                     {product.maintenanceInstructions?.map((inst: any, i: number) => <li key={i}>{inst}</li>)}
                    </ul>
                  </div>
                </div>
@@ -328,7 +329,7 @@ export const ProductDetailsPage = () => {
             <h2 className="text-4xl font-bold tracking-tight mb-12">Frequently Asked Questions</h2>
             <div className="max-w-3xl mx-auto text-left">
               <Accordion className="w-full">
-                {product.faqs.map((faq, idx) => (
+                {product.faqs?.map((faq: any, idx: number) => (
                   <AccordionItem key={idx} value={`item-${idx}`} className="border-b border-border/50 py-4">
                     <AccordionTrigger className="text-xl font-medium hover:no-underline tracking-tight">{faq.question}</AccordionTrigger>
                     <AccordionContent className="text-lg text-muted-foreground leading-relaxed font-light pt-2 pb-6">{faq.answer}</AccordionContent>

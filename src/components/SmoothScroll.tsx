@@ -19,14 +19,15 @@ export const SmoothScroll = ({ children }: { children: React.ReactNode }) => {
     })
 
     lenisRef.current = lenis
-    // @ts-ignore
-    window.lenis = lenis
+    const win = window as Record<string, any>
+    win.lenis = lenis
 
     lenis.on('scroll', ScrollTrigger.update)
 
-    gsap.ticker.add((time) => {
+    const tickerCallback = (time: number) => {
       lenis.raf(time * 1000)
-    })
+    }
+    gsap.ticker.add(tickerCallback)
 
     gsap.ticker.lagSmoothing(0)
 
@@ -36,11 +37,10 @@ export const SmoothScroll = ({ children }: { children: React.ReactNode }) => {
       const anchor = target.closest('a')
       if (anchor && anchor.hash && anchor.hash.startsWith('#') && anchor.pathname === window.location.pathname) {
         const targetElement = document.querySelector(anchor.hash)
-        // @ts-ignore
-        if (targetElement && window.lenis) {
+        const win = window as Record<string, any>
+        if (targetElement && win.lenis) {
           e.preventDefault()
-          // @ts-ignore
-          window.lenis.scrollTo(targetElement)
+          win.lenis.scrollTo(targetElement)
         }
       }
     }
@@ -50,7 +50,7 @@ export const SmoothScroll = ({ children }: { children: React.ReactNode }) => {
     return () => {
       document.removeEventListener('click', handleHashClick)
       lenis.destroy()
-      gsap.ticker.remove(lenis.raf)
+      gsap.ticker.remove(tickerCallback)
     }
   }, [])
 

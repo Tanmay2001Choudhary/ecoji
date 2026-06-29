@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
-import { Leaf, Mail, Lock, AlertCircle } from 'lucide-react'
+import { Mail, Lock, AlertCircle } from 'lucide-react'
 
 export const Login: React.FC = () => {
   const [email, setEmail] = useState('')
@@ -33,8 +33,9 @@ export const Login: React.FC = () => {
         throw error
       }
       
-      // On success, AuthContext will update and trigger the Navigate above
+      // Successful login will trigger AuthContext update, component will redirect
     } catch (err: any) {
+      console.error('Login error:', err)
       setError(err.message || 'Failed to sign in. Please check your credentials.')
     } finally {
       setIsLoading(false)
@@ -45,15 +46,13 @@ export const Login: React.FC = () => {
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
-          <div className="h-12 w-12 bg-primary/10 text-primary rounded-xl flex items-center justify-center">
-            <Leaf className="h-8 w-8" />
-          </div>
+          <img src="/logo.png" alt="Ecoji CMS Logo" className="h-24 md:h-28 w-auto object-contain" />
         </div>
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          Ecoji CMS
-        </h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
-          Sign in to manage your content
+        <div className="mt-4 flex justify-center -mt-2 sm:-mt-5">
+          <span className="bg-primary/10 text-primary text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest">Admin Portal</span>
+        </div>
+        <p className="mt-3 text-center text-sm text-gray-600">
+          Sign in to manage your store content
         </p>
       </div>
 

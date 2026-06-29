@@ -1,9 +1,10 @@
-import { Leaf, Camera, Share2, QrCode, Mail, Download, Link as LinkIcon } from 'lucide-react'
+import { Share2, QrCode, Mail, Download, Link as LinkIcon, MapPin } from 'lucide-react'
 import QRCode from 'react-qr-code'
 import { buildUrl } from '@/lib/url'
 import { Link } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { api } from '@/lib/api'
+import { shareQRCode } from '@/lib/share'
 
 const WhatsAppIcon = ({ className }: { className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none" className={className}>
@@ -15,26 +16,34 @@ const WhatsAppIcon = ({ className }: { className?: string }) => (
 export const Footer = () => {
   const siteUrl = buildUrl('/')
   const [products, setProducts] = useState<any[]>([])
+  const [contacts, setContacts] = useState<any[]>([])
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchData = async () => {
       try {
-        const data = await api.public.getProducts()
-        setProducts(data.slice(0, 4))
+        const prodData = await api.public.getProducts()
+        setProducts(prodData.slice(0, 4))
       } catch (err) {
         console.error('Failed to load products for footer', err)
       }
+      try {
+        const contactData = await api.contacts.list()
+        if (contactData && contactData.length > 0) {
+          setContacts(contactData.filter((c: any) => c.is_active !== false))
+        }
+      } catch (err) {
+        console.error('Failed to load contacts for footer', err)
+      }
     }
-    fetchProducts()
+    fetchData()
   }, [])
 
   return (
     <footer className="bg-secondary text-secondary-foreground py-12 border-t">
       <div className="container grid grid-cols-1 md:grid-cols-4 gap-8">
-        <div className="space-y-4">
-          <Link to="/" className="flex items-center space-x-2">
-            <Leaf className="h-6 w-6 text-primary" />
-            <span className="font-bold text-xl tracking-tight">Ecoji</span>
+        <div className="space-y-2">
+          <Link to="/" className="inline-block">
+            <img src="/logo.png" alt="Ecoji Logo" className="h-24 md:h-28 w-auto object-contain -ml-7" />
           </Link>
           <p className="text-sm text-secondary-foreground/80">
             Premium, sustainable, and export-quality eco-friendly products for a greener tomorrow.
@@ -65,10 +74,22 @@ export const Footer = () => {
         </div>
         <div>
           <h3 className="font-semibold mb-4">Connect</h3>
-          <div className="flex space-x-4 mb-8">
-            <a href="#" className="hover:text-primary transition-colors" data-cursor="discover" title="Instagram"><Camera className="h-5 w-5" /></a>
-            <a href="https://wa.me/917976474123" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors" data-cursor="interact" title="WhatsApp"><WhatsAppIcon className="h-5 w-5" /></a>
-            <a href="mailto:ecoji.office@gmail.com" className="hover:text-primary transition-colors" data-cursor="interact" title="Email"><Mail className="h-5 w-5" /></a>
+          <div className="flex flex-wrap gap-4 mb-8">
+            {contacts.length > 0 ? contacts.map(c => {
+              const isEmail = c.type === 'EMAIL' || c.icon === 'Mail'
+              const isPhone = c.type === 'PHONE' || c.icon === 'Phone'
+              const href = c.url || (isEmail ? `mailto:${c.value}` : isPhone ? `tel:${c.value.replace(/[^0-9+]/g, '')}` : '/contact')
+              return (
+                <a key={c.id} href={href} target={isPhone ? '_blank' : undefined} rel={isPhone ? 'noopener noreferrer' : undefined} className="hover:text-primary transition-colors flex items-center gap-1.5" title={c.label}>
+                  {isEmail ? <Mail className="h-5 w-5" /> : isPhone ? <WhatsAppIcon className="h-5 w-5" /> : <MapPin className="h-5 w-5" />}
+                </a>
+              )
+            }) : (
+              <>
+                <a href="https://wa.me/917976474123" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors" title="WhatsApp"><WhatsAppIcon className="h-5 w-5" /></a>
+                <a href="mailto:ecoji.office@gmail.com" className="hover:text-primary transition-colors" title="Email"><Mail className="h-5 w-5" /></a>
+              </>
+            )}
           </div>
           
           <div className="bg-background p-6 rounded-2xl shadow-sm border border-border inline-block group" data-cursor="scan">
@@ -122,15 +143,17 @@ export const Footer = () => {
               </button>
               
               <button 
-                onClick={async () => {
-                  try {
-                    await navigator.share({ title: 'Ecoji', url: siteUrl })
-                  } catch (err) {
-                    console.log('Error sharing:', err)
-                  }
+                onClick={() => {
+                  shareQRCode({
+                    elementId: 'ecoji-qr',
+                    filename: 'ecoji-qr.png',
+                    title: 'Ecoji',
+                    text: 'Premium, sustainable, and export-quality eco-friendly products.',
+                    url: siteUrl
+                  })
                 }}
                 className="flex flex-col items-center gap-1.5 p-2 rounded-lg hover:bg-muted transition-colors group/btn text-muted-foreground hover:text-foreground"
-                title="Share Link"
+                title="Share Link & QR"
               >
                 <Share2 className="h-4 w-4" />
                 <span className="text-[10px] font-medium uppercase tracking-wider">Share</span>

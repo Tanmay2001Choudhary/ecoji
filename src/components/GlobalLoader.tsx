@@ -1,6 +1,5 @@
-import { useEffect, useRef } from 'react'
 import gsap from 'gsap'
-import leafImg from '@/assets/leaf.png'
+import { useEffect, useRef } from 'react'
 
 export const GlobalLoader = ({ onComplete }: { onComplete: () => void }) => {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -59,13 +58,12 @@ export const GlobalLoader = ({ onComplete }: { onComplete: () => void }) => {
 
   return (
     <div ref={containerRef} className="fixed inset-0 z-[9999] flex items-center justify-center bg-background origin-top pointer-events-auto">
-      <div ref={logoWrapperRef} className="flex flex-col items-center gap-6">
+      <div ref={logoWrapperRef} className="flex flex-col items-center">
         <div className="flex items-center justify-center">
-          <img src={leafImg} className="w-[5%] h-[5%] object-cover leaf-icon-loader opacity-0 scale-90" alt="Loading Leaf" />
+          <img src="/logo.png" className="w-80 sm:w-96 h-auto object-contain leaf-icon-loader opacity-0 scale-90" alt="Loading Ecoji" />
         </div>
-        <div ref={textRef} className="text-center opacity-0 translate-y-4">
-          <h1 className="text-5xl font-bold tracking-tighter mb-2 text-foreground">Ecoji</h1>
-          <p className="text-muted-foreground uppercase tracking-[0.2em] text-xs font-semibold">Premium Sustainability</p>
+        <div ref={textRef} className="text-center opacity-0 translate-y-4 -mt-10 sm:-mt-14 relative z-10">
+          <p className="text-muted-foreground uppercase tracking-[0.25em] text-xs sm:text-sm font-semibold">Premium Sustainability</p>
         </div>
       </div>
     </div>

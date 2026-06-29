@@ -11,23 +11,26 @@ export const SustainabilityPage = () => {
   const containerRef = useRef<HTMLDivElement>(null)
 
   useGSAP(() => {
-    const ctx = gsap.context(() => {
-      gsap.from('.sus-header', { y: 40, opacity: 0, duration: 1, ease: 'power3.out' })
-      
-      gsap.from('.sus-card', {
-        y: 60,
-        opacity: 0,
-        duration: 1,
-        stagger: 0.15,
-        ease: 'power3.out',
-        scrollTrigger: {
-          trigger: '.sus-grid',
-          start: 'top 80%',
+    gsap.from('.sus-header', { y: 40, opacity: 0, duration: 1, ease: 'power3.out' })
+    
+    gsap.utils.toArray('.sus-card').forEach((card: any, index: number) => {
+      gsap.fromTo(card,
+        { y: 60, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 0.8,
+          delay: (index % 2) * 0.15,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: card,
+            start: 'top 85%',
+            toggleActions: 'play none none none'
+          }
         }
-      })
-    }, containerRef)
-    return () => ctx.revert()
-  }, [])
+      )
+    })
+  }, { scope: containerRef })
 
   return (
     <div ref={containerRef} className="pb-32 overflow-hidden relative">

@@ -31,9 +31,11 @@ export const AdminLayout: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex text-gray-900 font-sans">
       {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-gray-200 flex flex-col hidden md:flex">
-        <div className="h-16 flex items-center px-6 border-b border-gray-200">
-          <Link to="/admin/dashboard" className="text-xl font-bold text-primary">Ecoji Admin</Link>
+      <aside className="w-64 h-screen sticky top-0 bg-white border-r border-gray-200 flex flex-col hidden md:flex flex-shrink-0">
+        <div className="h-20 flex items-center px-6 border-b border-gray-200">
+          <Link to="/admin/dashboard" className="flex flex-col items-center">
+            <img src="/logo.png" alt="Ecoji Admin Logo" className="h-24 md:h-28 w-auto object-contain" />
+          </Link>
         </div>
         
         <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
@@ -76,8 +78,11 @@ export const AdminLayout: React.FC = () => {
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Mobile Header */}
-        <header className="md:hidden h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4">
-          <span className="text-xl font-bold text-primary">Ecoji Admin</span>
+        <header className="md:hidden h-20 bg-white border-b border-gray-200 flex items-center justify-between px-4">
+          <Link to="/admin/dashboard" className="flex items-center gap-2">
+            <img src="/logo.png" alt="Ecoji Admin Logo" className="h-10 w-auto object-contain" />
+            <span className="text-xs font-semibold bg-primary/10 text-primary px-2 py-0.5 rounded uppercase tracking-wider">Admin</span>
+          </Link>
           <button onClick={signOut} className="text-gray-500 hover:text-gray-700">
             <LogOut className="h-6 w-6" />
           </button>

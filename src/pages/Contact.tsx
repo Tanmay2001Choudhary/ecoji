@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Mail, MapPin, MessageSquare, ArrowRight, Phone } from 'lucide-react'
+import { Mail, MapPin, MessageSquare, ArrowRight } from 'lucide-react'
 import { useRef, useState, useEffect } from 'react'
 import { api } from '@/lib/api'
 import { useGSAP } from '@gsap/react'
@@ -40,20 +40,19 @@ export const ContactPage = () => {
     fetchContacts()
   }, [])
 
-  // Organize contacts by type
-  const emailContact = contacts.find(c => c.type === 'EMAIL') || { label: 'Email Us', value: 'ecoji.office@gmail.com', url: 'mailto:ecoji.office@gmail.com' }
-  const phoneContact = contacts.find(c => c.type === 'PHONE') || { label: 'WhatsApp / Call', value: '+91 7976474123', url: 'https://wa.me/917976474123' }
-  const addressContact = contacts.find(c => c.type === 'ADDRESS') || { label: 'Office', value: '271, Ward 29, Manikya Nagar\nBhilwara - 311001 (Rajasthan)\nIndia' }
+  // Organize contacts by type or fallback to defaults
+  const activeContactsList = contacts.length > 0 ? contacts.filter(c => c.is_active !== false) : [
+    { id: '1', type: 'EMAIL', label: 'Email Us', value: 'ecoji.office@gmail.com', url: 'mailto:ecoji.office@gmail.com' },
+    { id: '2', type: 'PHONE', label: 'WhatsApp / Call', value: '+91 7976474123', url: 'https://wa.me/917976474123' },
+    { id: '3', type: 'ADDRESS', label: 'Office', value: '271, Ward 29, Manikya Nagar\nBhilwara - 311001 (Rajasthan)\nIndia' }
+  ]
 
   useGSAP(() => {
-    const ctx = gsap.context(() => {
-      gsap.from('.contact-header', { y: 40, opacity: 0, duration: 1, ease: 'power3.out' })
-      gsap.from('.contact-card', { x: -40, opacity: 0, duration: 1, delay: 0.2, ease: 'power3.out' })
-      gsap.from('.contact-form', { x: 40, opacity: 0, duration: 1, delay: 0.2, ease: 'power3.out' })
-      gsap.from('.faq-section', { y: 40, opacity: 0, duration: 1, delay: 0.4, ease: 'power3.out' })
-    }, containerRef)
-    return () => ctx.revert()
-  }, [])
+    gsap.from('.contact-header', { y: 40, opacity: 0, duration: 1, ease: 'power3.out' })
+    gsap.from('.contact-card', { x: -40, opacity: 0, duration: 1, delay: 0.2, ease: 'power3.out' })
+    gsap.from('.contact-form', { x: 40, opacity: 0, duration: 1, delay: 0.2, ease: 'power3.out' })
+    gsap.from('.faq-section', { y: 40, opacity: 0, duration: 1, delay: 0.4, ease: 'power3.out' })
+  }, { scope: containerRef })
 
   return (
     <div ref={containerRef} className="pb-32 relative">
@@ -73,31 +72,34 @@ export const ContactPage = () => {
         <div className="grid lg:grid-cols-5 gap-12 lg:gap-24 items-start mb-32">
           {/* Contact Info Cards */}
           <div className="contact-card lg:col-span-2 flex flex-col gap-6">
-            <a href={emailContact.url || `mailto:${emailContact.value}`} className="group p-8 rounded-[2rem] bg-secondary/20 hover:bg-secondary/40 border border-border/50 hover:border-primary/30 transition-all duration-300" data-cursor="interact">
-              <Mail className="w-8 h-8 text-primary mb-6" />
-              <h3 className="text-2xl font-bold mb-2">{emailContact.label}</h3>
-              <p className="text-muted-foreground mb-6">For general inquiries and support.</p>
-              <div className="flex items-center text-primary font-medium group-hover:translate-x-2 transition-transform">
-                {emailContact.value} <ArrowRight className="w-4 h-4 ml-2" />
-              </div>
-            </a>
+            {activeContactsList.map((c, idx) => {
+              const isEmail = c.type === 'EMAIL' || c.icon === 'Mail'
+              const isPhone = c.type === 'PHONE' || c.icon === 'Phone'
+              const href = c.url || (isEmail ? `mailto:${c.value}` : isPhone ? `tel:${c.value.replace(/[^0-9+]/g, '')}` : undefined)
 
-            <a href={phoneContact.url || `tel:${phoneContact.value.replace(/[^0-9+]/g, '')}`} target="_blank" rel="noopener noreferrer" className="group p-8 rounded-[2rem] bg-secondary/20 hover:bg-secondary/40 border border-border/50 hover:border-primary/30 transition-all duration-300" data-cursor="interact">
-              <WhatsAppIcon className="w-8 h-8 text-primary mb-6" />
-              <h3 className="text-2xl font-bold mb-2">{phoneContact.label}</h3>
-              <p className="text-muted-foreground mb-6">Mon-Fri from 9am to 6pm IST.</p>
-              <div className="flex items-center text-primary font-medium group-hover:translate-x-2 transition-transform">
-                {phoneContact.value} <ArrowRight className="w-4 h-4 ml-2" />
-              </div>
-            </a>
+              if (href) {
+                return (
+                  <a key={c.id || idx} href={href} target={isPhone ? '_blank' : undefined} rel={isPhone ? 'noopener noreferrer' : undefined} className="group p-8 rounded-[2rem] bg-secondary/20 hover:bg-secondary/40 border border-border/50 hover:border-primary/30 transition-all duration-300" data-cursor="interact">
+                    {isEmail ? <Mail className="w-8 h-8 text-primary mb-6" /> : <WhatsAppIcon className="w-8 h-8 text-primary mb-6" />}
+                    <h3 className="text-2xl font-bold mb-2">{c.label}</h3>
+                    <p className="text-muted-foreground mb-6">{isEmail ? 'For general inquiries and support.' : 'Mon-Fri from 9am to 6pm IST.'}</p>
+                    <div className="flex items-center text-primary font-medium group-hover:translate-x-2 transition-transform">
+                      {c.value} <ArrowRight className="w-4 h-4 ml-2" />
+                    </div>
+                  </a>
+                )
+              }
 
-            <div className="p-8 rounded-[2rem] bg-secondary/20 border border-border/50">
-              <MapPin className="w-8 h-8 text-primary mb-6" />
-              <h3 className="text-2xl font-bold mb-2">{addressContact.label}</h3>
-              <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
-                {addressContact.value}
-              </p>
-            </div>
+              return (
+                <div key={c.id || idx} className="p-8 rounded-[2rem] bg-secondary/20 border border-border/50">
+                  <MapPin className="w-8 h-8 text-primary mb-6" />
+                  <h3 className="text-2xl font-bold mb-2">{c.label}</h3>
+                  <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                    {c.value}
+                  </p>
+                </div>
+              )
+            })}
           </div>
 
           {/* Contact Form */}
