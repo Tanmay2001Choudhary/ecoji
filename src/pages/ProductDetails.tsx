@@ -1,8 +1,8 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useParams, Navigate } from 'react-router-dom'
-import { getProductBySlug, getRelatedProducts } from '@/config/products'
+import { api } from '@/lib/api'
 import { buildUrl } from '@/lib/url'
-import { shareContent } from '@/lib/share'
+import { shareQRCode } from '@/lib/share'
 import { SEO } from '@/components/SEO'
 import { ProductCard } from '@/components/ProductCard'
 import { ProductGallery } from '@/components/ProductGallery'
@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button'
 import { Leaf, Share2, Copy, Download, ShieldCheck, Heart, QrCode } from 'lucide-react'
 import QRCode from 'react-qr-code'
 import gsap from 'gsap'
+import { useGSAP } from '@gsap/react'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
 gsap.registerPlugin(ScrollTrigger)
@@ -20,67 +21,126 @@ export const ProductDetailsPage = () => {
   const { slug } = useParams<{ slug: string }>()
   const containerRef = useRef<HTMLDivElement>(null)
   
-  if (!slug) return <Navigate to="/products" />
+  const [product, setProduct] = useState<any>(null)
+  const [relatedProducts, setRelatedProducts] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
   
-  const product = getProductBySlug(slug)
-  if (!product) return <Navigate to="/products" />
+  useEffect(() => {
+    if (!slug) return
+    const fetchProduct = async () => {
+      try {
+        setIsLoading(true)
+        const data = await api.public.getProductBySlug(slug)
+        
+        // Map to expected format
+        const mappedData = {
+          ...data,
+          category: data.categories?.name,
+          shortDescription: data.short_description,
+          fullDescription: data.full_description,
+          gallery: data.product_images?.sort((a: any, b: any) => a.display_order - b.display_order).map((img: any) => img.url) || [],
+          benefits: data.benefits || [],
+          specifications: data.specifications || {},
+          ingredientsOrMaterials: data.ingredients_materials || [],
+          usageInstructions: data.usage_instructions || [],
+          maintenanceInstructions: data.maintenance_instructions || [],
+          sustainabilityImpact: data.sustainability_impact || '',
+          faqs: data.product_faqs?.sort((a: any, b: any) => a.display_order - b.display_order) || [],
+          affiliates: data.affiliate_links?.filter((a: any) => a.is_active) || [],
+          seoMetadata: {
+            title: data.seo_title,
+            description: data.seo_description
+          },
+          qrCodeLink: `/products/${data.slug}`
+        }
+        setProduct(mappedData)
 
-  const relatedProducts = getRelatedProducts(product.relatedProducts)
+        // Fetch related products
+        const relatedIds = data.product_related?.map((r: any) => r.related_product_id) || []
+        if (relatedIds.length > 0) {
+          const relatedData = await api.public.getProductsByIds(relatedIds)
+          setRelatedProducts(relatedData.map((p: any) => ({
+            ...p,
+            shortDescription: p.short_description,
+            category: p.categories?.name,
+            images: p.product_images?.map((img: any) => img.url) || []
+          })))
+        } else {
+          setRelatedProducts([])
+        }
+      } catch (error) {
+        console.error('Error fetching product details:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchProduct()
+  }, [slug])
 
   // GSAP Animations
-  useEffect(() => {
-    if (!containerRef.current) return
-    const ctx = gsap.context(() => {
-      gsap.from('.gallery-thumbnails button', {
-        y: 30,
-        opacity: 0,
-        stagger: 0.1,
-        duration: 0.8,
-        ease: 'power3.out',
-        scrollTrigger: {
-          trigger: '.gallery-container',
-          start: 'top 80%',
-        }
-      })
-      gsap.from('.gallery-main', {
-        scale: 0.95,
-        opacity: 0,
-        duration: 1,
-        ease: 'power3.out',
-        scrollTrigger: {
-          trigger: '.gallery-container',
-          start: 'top 80%',
-        }
-      })
-      
-      gsap.utils.toArray('.content-section').forEach((section: any) => {
-        gsap.from(section, {
-          y: 40,
-          opacity: 0,
+  useGSAP(() => {
+    if (isLoading || !product) return
+
+    gsap.from('.gallery-thumbnails button', {
+      y: 30,
+      opacity: 0,
+      stagger: 0.1,
+      duration: 0.8,
+      ease: 'power3.out',
+      scrollTrigger: {
+        trigger: '.gallery-container',
+        start: 'top 80%',
+      }
+    })
+    gsap.from('.gallery-main', {
+      scale: 0.95,
+      opacity: 0,
+      duration: 1,
+      ease: 'power3.out',
+      scrollTrigger: {
+        trigger: '.gallery-container',
+        start: 'top 80%',
+      }
+    })
+    
+    gsap.utils.toArray('.content-section').forEach((section: any) => {
+      gsap.fromTo(section,
+        { y: 40, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
           duration: 1,
           ease: 'power3.out',
           scrollTrigger: {
             trigger: section,
             start: 'top 85%',
+            toggleActions: 'play none none none'
           }
-        })
-      })
-    }, containerRef)
-    return () => ctx.revert()
-  }, [slug])
+        }
+      )
+    })
+  }, { scope: containerRef, dependencies: [isLoading, product] })
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <p className="text-muted-foreground text-xl">Loading product details...</p>
+      </div>
+    )
+  }
+
+  if (!product) return <Navigate to="/products" />
 
   const fullUrl = buildUrl(product.qrCodeLink)
 
-  const handleShare = async () => {
-    const shared = await shareContent(
-      `Ecoji - ${product.name}`,
-      product.shortDescription,
-      fullUrl
-    )
-    if (!shared) {
-      navigator.clipboard.writeText(fullUrl)
-      // Could show toast here
-    }
+  const handleShare = () => {
+    shareQRCode({
+      elementId: "ProductQRCode",
+      filename: `${product.slug}-qr.png`,
+      title: `Ecoji - ${product.name}`,
+      text: product.shortDescription,
+      url: fullUrl
+    })
   }
 
   const copyLink = () => {
@@ -135,10 +195,30 @@ export const ProductDetailsPage = () => {
               
               {/* Actions */}
               <div className="flex flex-col gap-4">
-                <Button size="lg" className="w-full text-lg h-16 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-primary text-primary-foreground" onClick={() => document.getElementById('story-section')?.scrollIntoView({ behavior: 'smooth' })}>
-                  Discover Story
-                </Button>
-                <Button size="lg" variant="outline" className="w-full text-lg h-16 rounded-full border-2 hover:bg-secondary/50 transition-all duration-300" onClick={handleShare}>
+                {product.affiliates?.length > 0 ? (
+                  <>
+                    <h4 className="text-sm font-semibold tracking-wider uppercase text-muted-foreground mb-2">Available On</h4>
+                    <div className="grid grid-cols-2 gap-3">
+                      {product.affiliates.map((aff: any) => (
+                        <Button 
+                          key={aff.id} 
+                          size="lg" 
+                          variant="default" 
+                          className="w-full text-base h-14 rounded-xl shadow-md hover:shadow-lg transition-all duration-300" 
+                          onClick={() => window.open(aff.url, '_blank', 'noopener,noreferrer')}
+                        >
+                          {aff.platform}
+                        </Button>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <Button size="lg" className="w-full text-lg h-16 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-primary text-primary-foreground" onClick={() => document.getElementById('story-section')?.scrollIntoView({ behavior: 'smooth' })}>
+                    Discover Story
+                  </Button>
+                )}
+                
+                <Button size="lg" variant="outline" className="w-full text-lg h-16 rounded-full border-2 hover:bg-secondary/50 transition-all duration-300 mt-2" onClick={handleShare}>
                   <Share2 className="mr-2 h-5 w-5" /> Share Product
                 </Button>
               </div>
@@ -149,7 +229,7 @@ export const ProductDetailsPage = () => {
                   <AccordionTrigger className="text-lg font-semibold hover:no-underline py-4">Highlights</AccordionTrigger>
                   <AccordionContent className="text-muted-foreground space-y-3 pb-6">
                     <ul className="list-disc pl-5 space-y-2">
-                      {product.benefits.map((benefit, idx) => (
+                      {product.benefits?.map((benefit: any, idx: number) => (
                         <li key={idx} className="text-base font-light leading-relaxed">{benefit}</li>
                       ))}
                     </ul>
@@ -159,10 +239,10 @@ export const ProductDetailsPage = () => {
                   <AccordionTrigger className="text-lg font-semibold hover:no-underline py-4">Specifications</AccordionTrigger>
                   <AccordionContent className="text-muted-foreground pb-6">
                     <dl className="space-y-4">
-                      {Object.entries(product.specifications).map(([key, value]) => (
+                      {product.specifications && Object.entries(product.specifications).map(([key, value]: [string, any]) => (
                         <div key={key} className="grid grid-cols-3 border-b border-border/30 pb-3">
                           <dt className="font-medium text-foreground">{key}</dt>
-                          <dd className="col-span-2 font-light">{value}</dd>
+                          <dd className="col-span-2 font-light">{String(value)}</dd>
                         </div>
                       ))}
                     </dl>
@@ -218,7 +298,7 @@ export const ProductDetailsPage = () => {
               <h2 className="text-4xl font-bold tracking-tight leading-tight">Sustainability Impact</h2>
               <p className="text-xl leading-relaxed text-muted-foreground font-light">{product.sustainabilityImpact}</p>
               <div className="pt-4 flex flex-wrap gap-3">
-                {product.ingredientsOrMaterials.map((mat, idx) => (
+                {product.ingredientsOrMaterials?.map((mat: any, idx: number) => (
                   <Badge key={idx} variant="outline" className="px-5 py-2.5 text-base font-normal rounded-full bg-secondary/30 border-secondary backdrop-blur-sm">{mat}</Badge>
                 ))}
               </div>
@@ -232,13 +312,13 @@ export const ProductDetailsPage = () => {
                  <div>
                    <h4 className="text-lg font-medium text-foreground mb-4 flex items-center gap-3"><Heart className="w-5 h-5 text-primary" /> How to Use</h4>
                    <ul className="list-disc pl-6 text-muted-foreground space-y-2 font-light text-lg leading-relaxed">
-                     {product.usageInstructions.map((inst, i) => <li key={i}>{inst}</li>)}
+                     {product.usageInstructions?.map((inst: any, i: number) => <li key={i}>{inst}</li>)}
                    </ul>
                  </div>
                  <div>
                    <h4 className="text-lg font-medium text-foreground mb-4 flex items-center gap-3"><ShieldCheck className="w-5 h-5 text-primary" /> Maintenance</h4>
                    <ul className="list-disc pl-6 text-muted-foreground space-y-2 font-light text-lg leading-relaxed">
-                     {product.maintenanceInstructions.map((inst, i) => <li key={i}>{inst}</li>)}
+                     {product.maintenanceInstructions?.map((inst: any, i: number) => <li key={i}>{inst}</li>)}
                    </ul>
                  </div>
                </div>
@@ -249,7 +329,7 @@ export const ProductDetailsPage = () => {
             <h2 className="text-4xl font-bold tracking-tight mb-12">Frequently Asked Questions</h2>
             <div className="max-w-3xl mx-auto text-left">
               <Accordion className="w-full">
-                {product.faqs.map((faq, idx) => (
+                {product.faqs?.map((faq: any, idx: number) => (
                   <AccordionItem key={idx} value={`item-${idx}`} className="border-b border-border/50 py-4">
                     <AccordionTrigger className="text-xl font-medium hover:no-underline tracking-tight">{faq.question}</AccordionTrigger>
                     <AccordionContent className="text-lg text-muted-foreground leading-relaxed font-light pt-2 pb-6">{faq.answer}</AccordionContent>

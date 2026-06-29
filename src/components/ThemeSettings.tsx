@@ -1,16 +1,39 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAppStore } from '@/store/useAppStore'
 import { Settings, X, Palette, Type } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { api } from '@/lib/api'
 
 export const ThemeSettings = () => {
   const [isOpen, setIsOpen] = useState(false)
   const { theme, font, cursorStyle, setTheme, setFont, setCursorStyle } = useAppStore()
 
-  const themes = ['premium-eco', 'modern-eco', 'bamboo', 'luxury-eco'] as const
-  const fonts = ['Poppins', 'Inter', 'Montserrat', 'Nunito', 'Lora', 'Playfair Display'] as const
+  const [dbThemes, setDbThemes] = useState<string[]>(['premium-eco', 'modern-eco', 'bamboo', 'luxury-eco'])
+  const [dbFonts, setDbFonts] = useState<string[]>(['Poppins', 'Inter', 'Montserrat', 'Nunito', 'Lora', 'Playfair Display'])
+
   const cursors = ['context', 'premium', 'eco', 'default'] as const
+
+  useEffect(() => {
+    const fetchAppearance = async () => {
+      try {
+        const fetchedThemes = await api.themes.list()
+        if (fetchedThemes && fetchedThemes.length > 0) {
+          const activeThemeSlugs = fetchedThemes.filter((t: any) => t.is_active !== false).map((t: any) => t.slug)
+          if (activeThemeSlugs.length > 0) setDbThemes(activeThemeSlugs)
+        }
+
+        const fetchedFonts = await api.fonts.list()
+        if (fetchedFonts && fetchedFonts.length > 0) {
+          const activeFontNames = fetchedFonts.filter((f: any) => f.is_active !== false).map((f: any) => f.font_family)
+          if (activeFontNames.length > 0) setDbFonts(activeFontNames)
+        }
+      } catch (err) {
+        console.error('Failed to load appearance options:', err)
+      }
+    }
+    fetchAppearance()
+  }, [isOpen])
 
   const formatName = (name: string) => {
     return name.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
@@ -24,8 +47,8 @@ export const ThemeSettings = () => {
         </Button>
       </div>
 
-      <div className={cn("fixed bottom-6 right-6 z-50 w-80 bg-background/80 backdrop-blur-xl border rounded-2xl shadow-2xl p-6 transition-all duration-500 transform origin-bottom-right", isOpen ? "scale-100 opacity-100" : "scale-50 opacity-0 pointer-events-none")}>
-        <div className="flex items-center justify-between mb-6">
+      <div className={cn("fixed bottom-6 right-6 z-50 w-80 bg-background/80 backdrop-blur-xl border rounded-2xl shadow-2xl p-6 transition-all duration-500 transform origin-bottom-right max-h-[85vh] overflow-y-auto", isOpen ? "scale-100 opacity-100" : "scale-50 opacity-0 pointer-events-none")}>
+        <div className="flex items-center justify-between mb-6 sticky top-0 bg-background/90 py-2 z-10">
           <h3 className="font-semibold text-lg flex items-center gap-2"><Palette className="w-5 h-5 text-primary" /> Appearance</h3>
           <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)} className="h-8 w-8 rounded-full">
             <X className="h-4 w-4" />
@@ -38,14 +61,15 @@ export const ThemeSettings = () => {
               <Palette className="w-3 h-3" /> Theme
             </label>
             <div className="grid grid-cols-2 gap-2">
-              {themes.map(t => (
+              {dbThemes.map(t => (
                 <button
                   key={t}
-                  onClick={() => setTheme(t)}
+                  onClick={() => setTheme(t as any)}
                   className={cn(
-                    "px-3 py-2 text-sm rounded-lg border text-left transition-all",
-                    theme === t ? "bg-primary text-primary-foreground border-primary" : "hover:bg-muted"
+                    "px-3 py-2 text-sm rounded-lg border text-left transition-all truncate",
+                    theme === t ? "bg-primary text-primary-foreground border-primary font-medium" : "hover:bg-muted"
                   )}
+                  title={formatName(t)}
                 >
                   {formatName(t)}
                 </button>
@@ -58,14 +82,15 @@ export const ThemeSettings = () => {
               <Type className="w-3 h-3" /> Typography
             </label>
             <div className="grid grid-cols-2 gap-2">
-              {fonts.map(f => (
+              {dbFonts.map(f => (
                 <button
                   key={f}
-                  onClick={() => setFont(f)}
+                  onClick={() => setFont(f as any)}
                   className={cn(
-                    "px-3 py-2 text-sm rounded-lg border text-left transition-all",
-                    font === f ? "bg-primary text-primary-foreground border-primary" : "hover:bg-muted"
+                    "px-3 py-2 text-sm rounded-lg border text-left transition-all truncate",
+                    font === f ? "bg-primary text-primary-foreground border-primary font-medium" : "hover:bg-muted"
                   )}
+                  title={formatName(f)}
                 >
                   {formatName(f)}
                 </button>
@@ -83,11 +108,11 @@ export const ThemeSettings = () => {
                   key={c}
                   onClick={() => setCursorStyle(c)}
                   className={cn(
-                    "px-3 py-2 text-sm rounded-lg border text-left transition-all",
-                    cursorStyle === c ? "bg-primary text-primary-foreground border-primary" : "hover:bg-muted"
+                    "px-3 py-2 text-sm rounded-lg border text-left transition-all capitalize truncate",
+                    cursorStyle === c ? "bg-primary text-primary-foreground border-primary font-medium" : "hover:bg-muted"
                   )}
                 >
-                  {formatName(c)}
+                  {c}
                 </button>
               ))}
             </div>

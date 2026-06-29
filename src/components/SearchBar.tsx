@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
-import { Search, X } from 'lucide-react'
-import { products } from '@/config/products'
+import { Search, X, Loader2 } from 'lucide-react'
+import { api } from '@/lib/api'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 
@@ -13,6 +13,38 @@ export const SearchBar = () => {
   const containerRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const navigate = useNavigate()
+  const [products, setProducts] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+
+  // Debounced search
+  useEffect(() => {
+    const fetchProducts = async () => {
+      if (!query.trim()) {
+        setProducts([])
+        return
+      }
+      try {
+        setIsLoading(true)
+        const data = await api.public.searchProducts(query)
+        const mappedData = data.map((p: any) => ({
+          ...p,
+          category: p.categories?.name,
+          images: p.product_images?.map((img: any) => img.url) || []
+        }))
+        setProducts(mappedData)
+      } catch (err) {
+        console.error('Failed to load products for search', err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    
+    const timeoutId = setTimeout(() => {
+      fetchProducts()
+    }, 300)
+
+    return () => clearTimeout(timeoutId)
+  }, [query])
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -24,11 +56,7 @@ export const SearchBar = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  const results = products.filter(p => 
-    p.name.toLowerCase().includes(query.toLowerCase()) || 
-    p.category.toLowerCase().includes(query.toLowerCase()) ||
-    p.tags.some(t => t.toLowerCase().includes(query.toLowerCase()))
-  )
+  const results = products
 
   const handleSelect = (slug: string) => {
     setIsOpen(false)
@@ -56,7 +84,11 @@ export const SearchBar = () => {
       
       {isOpen && query.length > 0 && (
         <div className="absolute top-full mt-2 w-full max-w-sm right-0 bg-background/95 backdrop-blur-xl border border-border/50 rounded-2xl shadow-2xl overflow-hidden z-[100]">
-          {results.length > 0 ? (
+          {isLoading ? (
+            <div className="p-4 text-center flex justify-center">
+              <Loader2 className="animate-spin text-primary h-5 w-5" />
+            </div>
+          ) : results.length > 0 ? (
             <div className="py-2 max-h-96 overflow-y-auto">
               {results.map(product => (
                 <button
@@ -112,7 +144,12 @@ export const SearchBar = () => {
           </div>
           
           <div className="flex-1 overflow-y-auto p-4">
-            {query.length > 0 && results.length > 0 && (
+            {isLoading && query.length > 0 && (
+               <div className="flex justify-center mt-10">
+                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
+               </div>
+            )}
+            {!isLoading && query.length > 0 && results.length > 0 && (
               <div className="space-y-2">
                 {results.map(product => (
                   <button
@@ -129,7 +166,7 @@ export const SearchBar = () => {
                 ))}
               </div>
             )}
-            {query.length > 0 && results.length === 0 && (
+            {!isLoading && query.length > 0 && results.length === 0 && (
               <div className="text-center mt-10 text-muted-foreground">
                 No products found for "{query}"
               </div>

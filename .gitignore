@@ -24,3 +24,10 @@ dist-ssr
 *.sw?
 
 .vercel
+.env
+.env.*
+check_products.js
+create_admin.mjs
+seed_all_fonts.mjs
+seed_defaults.ts
+test_fetch.js

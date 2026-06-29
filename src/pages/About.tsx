@@ -11,30 +11,28 @@ export const AboutPage = () => {
   const containerRef = useRef<HTMLDivElement>(null)
 
   useGSAP(() => {
-    const ctx = gsap.context(() => {
-      // Hero Animation
-      gsap.from('.about-title', { y: 50, opacity: 0, duration: 1, ease: 'power3.out' })
-      gsap.from('.about-subtitle', { y: 30, opacity: 0, duration: 1, delay: 0.2, ease: 'power3.out' })
+    // Hero Animation
+    gsap.from('.about-title', { y: 50, opacity: 0, duration: 1, ease: 'power3.out' })
+    gsap.from('.about-subtitle', { y: 30, opacity: 0, duration: 1, delay: 0.2, ease: 'power3.out' })
 
-      // Sections reveal
-      gsap.utils.toArray('.reveal-section').forEach((section: any) => {
-        gsap.from(section, {
-          y: 60,
-          opacity: 0,
+    // Sections reveal
+    gsap.utils.toArray('.reveal-section').forEach((section: any) => {
+      gsap.fromTo(section,
+        { y: 60, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
           duration: 1,
           ease: 'power3.out',
           scrollTrigger: {
             trigger: section,
-            start: 'top 80%',
+            start: 'top 85%',
+            toggleActions: 'play none none none'
           }
-        })
-      })
-
-      ScrollTrigger.refresh()
-    }, containerRef)
-
-    return () => ctx.revert()
-  }, [])
+        }
+      )
+    })
+  }, { scope: containerRef })
 
   return (
     <div ref={containerRef} className="pb-24">
