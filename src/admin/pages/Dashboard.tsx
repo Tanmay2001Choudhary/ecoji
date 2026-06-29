@@ -138,7 +138,8 @@ export const Dashboard: React.FC = () => {
             <div>
               <h2 className="text-lg font-bold text-gray-900">Recently Added Products</h2>
               <p className="text-sm text-gray-500">Latest eco-friendly items in your store</p>
-            </div            <Link to="/admin/products" className="text-sm font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-1">
+            </div>
+            <Link to="/admin/products" className="text-sm font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-1">
               View All <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
@@ -179,7 +180,7 @@ export const Dashboard: React.FC = () => {
                 </div>
               ))}
             </div>
-          )})}
+          )}
         </div>
 
         {/* Quick Actions Panel */}
