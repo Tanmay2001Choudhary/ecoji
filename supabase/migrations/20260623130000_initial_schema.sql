@@ -2,10 +2,10 @@
 -- Paste this script into your Supabase SQL Editor and run it.
 
 -- 1. ENUMS
-CREATE TYPE product_status AS ENUM ('DRAFT', 'PUBLISHED', 'ARCHIVED');
-CREATE TYPE user_role AS ENUM ('ADMIN', 'EDITOR');
-CREATE TYPE placement_type AS ENUM ('HOMEPAGE_FEATURED', 'HERO_SECTION', 'NEW_ARRIVALS', 'BEST_SELLERS');
-CREATE TYPE font_provider AS ENUM ('GOOGLE_FONTS', 'CUSTOM');
+DO $$ BEGIN CREATE TYPE product_status AS ENUM ('DRAFT', 'PUBLISHED', 'ARCHIVED'); EXCEPTION WHEN duplicate_object THEN null; END $$;
+DO $$ BEGIN CREATE TYPE user_role AS ENUM ('ADMIN', 'EDITOR'); EXCEPTION WHEN duplicate_object THEN null; END $$;
+DO $$ BEGIN CREATE TYPE placement_type AS ENUM ('HOMEPAGE_FEATURED', 'HERO_SECTION', 'NEW_ARRIVALS', 'BEST_SELLERS'); EXCEPTION WHEN duplicate_object THEN null; END $$;
+DO $$ BEGIN CREATE TYPE font_provider AS ENUM ('GOOGLE_FONTS', 'CUSTOM'); EXCEPTION WHEN duplicate_object THEN null; END $$;
 
 -- 2. TABLES
 

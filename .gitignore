@@ -31,3 +31,5 @@ create_admin.mjs
 seed_all_fonts.mjs
 seed_defaults.ts
 test_fetch.js
+check_cloud.mjs
+migrate_local_to_cloud.mjs
