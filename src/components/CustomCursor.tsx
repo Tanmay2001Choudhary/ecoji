@@ -122,7 +122,7 @@ export const CustomCursor = () => {
   return (
     <div 
       ref={cursorRef} 
-      className={`fixed inset-0 pointer-events-none z-[10000] ${isPremium || isContext ? 'mix-blend-difference' : ''}`}
+      className={`fixed inset-0 pointer-events-none z-[999999] ${isPremium || isContext ? 'mix-blend-difference' : ''}`}
       style={{ opacity: 0 }}
     >
       {/* Inner Element */}

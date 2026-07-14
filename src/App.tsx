@@ -4,6 +4,7 @@ import { ThemeProvider } from '@/components/ThemeProvider'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { AppRouter } from '@/routes'
 import { GlobalLoader } from '@/components/GlobalLoader'
+import { CustomCursor } from '@/components/CustomCursor'
 
 function App() {
   const [isLoaded, setIsLoaded] = useState(false)
@@ -13,6 +14,7 @@ function App() {
       <ThemeProvider>
         <AuthProvider>
           {!isLoaded && <GlobalLoader onComplete={() => setIsLoaded(true)} />}
+          <CustomCursor />
           <div className={!isLoaded ? "hidden" : "block animate-fade-in"}>
             <AppRouter />
           </div>
