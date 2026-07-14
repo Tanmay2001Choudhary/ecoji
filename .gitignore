@@ -33,3 +33,4 @@ seed_defaults.ts
 test_fetch.js
 check_cloud.mjs
 migrate_local_to_cloud.mjs
+create_cloud_admin.mjs
