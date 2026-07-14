@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '@/lib/api'
 import { Package, Layers, Phone, Palette, Plus, ArrowRight, ExternalLink, Sparkles, TrendingUp, CheckCircle2 } from 'lucide-react'
+import { getBaseUrl } from '@/lib/url'
 
 export const Dashboard: React.FC = () => {
   const [loading, setLoading] = useState(true)
@@ -64,7 +65,7 @@ export const Dashboard: React.FC = () => {
               <Plus className="w-4 h-4" /> Add New Product
             </Link>
             <a
-              href="https://ecoji.vercel.app/"
+              href={getBaseUrl()}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-medium text-sm backdrop-blur-md transition-all border border-white/20"
