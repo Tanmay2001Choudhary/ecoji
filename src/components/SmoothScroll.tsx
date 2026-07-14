@@ -25,6 +25,11 @@ export const SmoothScroll = ({ children }: { children: React.ReactNode }) => {
     lenis.on('scroll', ScrollTrigger.update)
 
     const tickerCallback = (time: number) => {
+      if (document.body.style.overflow === 'hidden') {
+        lenis.stop()
+        return
+      }
+      lenis.start()
       lenis.raf(time * 1000)
     }
     gsap.ticker.add(tickerCallback)

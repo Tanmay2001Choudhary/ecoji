@@ -45,15 +45,16 @@ export const HomePage = () => {
     // Features Section
     gsap.utils.toArray('.feature-card').forEach((card: any) => {
       gsap.fromTo(card,
-        { y: 50, opacity: 0 },
+        { y: 40, opacity: 0 },
         {
           y: 0,
           opacity: 1,
-          duration: 1,
+          duration: 0.8,
           ease: "power3.out",
+          clearProps: 'all',
           scrollTrigger: {
             trigger: card,
-            start: 'top 85%',
+            start: 'top 90%',
             toggleActions: 'play none none none'
           }
         }
@@ -64,15 +65,16 @@ export const HomePage = () => {
     if (products.length > 0) {
       gsap.utils.toArray('.product-card-wrapper').forEach((card: any) => {
         gsap.fromTo(card,
-          { y: 60, opacity: 0 },
+          { y: 40, opacity: 0 },
           {
             y: 0,
             opacity: 1,
-            duration: 1,
+            duration: 0.8,
             ease: "power3.out",
+            clearProps: 'all',
             scrollTrigger: {
               trigger: card,
-              start: 'top 85%',
+              start: 'top 90%',
               toggleActions: 'play none none none'
             }
           }

@@ -11,12 +11,12 @@ export const ProductCard = ({ product }: ProductCardProps) => {
     <Link to={`/products/${product.slug}`} className="group block relative h-full cursor-none" data-cursor="discover">
       <div className="flex flex-col h-full overflow-hidden rounded-[2rem] bg-secondary/10 transition-all duration-700 ease-custom hover:bg-background hover:shadow-2xl border border-border/10 hover:border-border/50">
         
-        <div className="relative aspect-[4/5] overflow-hidden rounded-t-[2rem]">
+        <div className="relative aspect-[4/5] overflow-hidden rounded-t-[2rem] bg-secondary/15 flex items-center justify-center p-4">
           {product.images[0] ? (
             <img 
               src={product.images[0]} 
               alt={product.name}
-              className="h-full w-full object-cover transition-transform duration-1000 ease-custom group-hover:scale-[1.05]"
+              className="h-full w-full object-contain transition-transform duration-1000 ease-custom group-hover:scale-[1.05]"
             />
           ) : (
             <div className="h-full w-full flex items-center justify-center text-muted-foreground font-light bg-muted/50">

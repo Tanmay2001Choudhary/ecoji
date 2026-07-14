@@ -77,46 +77,23 @@ export const ProductDetailsPage = () => {
     fetchProduct()
   }, [slug])
 
-  // GSAP Animations
+  // GSAP Animations (Immediate smooth entrance without ScrollTrigger to prevent opacity bugs)
   useGSAP(() => {
     if (isLoading || !product) return
 
-    gsap.from('.gallery-thumbnails button', {
-      y: 30,
-      opacity: 0,
-      stagger: 0.1,
-      duration: 0.8,
-      ease: 'power3.out',
-      scrollTrigger: {
-        trigger: '.gallery-container',
-        start: 'top 80%',
-      }
-    })
-    gsap.from('.gallery-main', {
-      scale: 0.95,
-      opacity: 0,
-      duration: 1,
-      ease: 'power3.out',
-      scrollTrigger: {
-        trigger: '.gallery-container',
-        start: 'top 80%',
-      }
-    })
+    gsap.fromTo('.gallery-thumbnails button', 
+      { y: 20, opacity: 0 },
+      { y: 0, opacity: 1, stagger: 0.08, duration: 0.6, ease: 'power2.out', clearProps: 'all' }
+    )
+    gsap.fromTo('.gallery-main', 
+      { scale: 0.98, opacity: 0 },
+      { scale: 1, opacity: 1, duration: 0.7, ease: 'power2.out', clearProps: 'all' }
+    )
     
     gsap.utils.toArray('.content-section').forEach((section: any) => {
       gsap.fromTo(section,
-        { y: 40, opacity: 0 },
-        {
-          y: 0,
-          opacity: 1,
-          duration: 1,
-          ease: 'power3.out',
-          scrollTrigger: {
-            trigger: section,
-            start: 'top 85%',
-            toggleActions: 'play none none none'
-          }
-        }
+        { y: 25, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.7, ease: 'power2.out', clearProps: 'all' }
       )
     })
   }, { scope: containerRef, dependencies: [isLoading, product] })

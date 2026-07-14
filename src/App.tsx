@@ -13,7 +13,9 @@ function App() {
       <ThemeProvider>
         <AuthProvider>
           {!isLoaded && <GlobalLoader onComplete={() => setIsLoaded(true)} />}
-          <AppRouter />
+          <div className={!isLoaded ? "hidden" : "block animate-fade-in"}>
+            <AppRouter />
+          </div>
         </AuthProvider>
       </ThemeProvider>
     </HelmetProvider>

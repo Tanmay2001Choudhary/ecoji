@@ -9,11 +9,56 @@ export const GlobalLoader = ({ onComplete }: { onComplete: () => void }) => {
   useEffect(() => {
     let isMounted = true
 
+    // Lock page scroll, stop Lenis, and intercept all scroll events while loader is visible
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    window.scrollTo(0, 0)
+
+    const preventScroll = (e: Event) => {
+      e.preventDefault()
+      e.stopPropagation()
+      return false
+    }
+
+    const preventScrollKeys = (e: KeyboardEvent) => {
+      if (['ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', 'Space', 'Home', 'End'].includes(e.code || e.key)) {
+        e.preventDefault()
+        e.stopPropagation()
+        return false
+      }
+    }
+
+    window.addEventListener('wheel', preventScroll, { passive: false, capture: true })
+    window.addEventListener('touchmove', preventScroll, { passive: false, capture: true })
+    window.addEventListener('keydown', preventScrollKeys, { passive: false, capture: true })
+
+    const win = window as Record<string, any>
+    if (win.lenis) win.lenis.stop()
+    const checkLenisInterval = setInterval(() => {
+      if (win.lenis && isMounted) {
+        win.lenis.stop()
+      }
+    }, 50)
+
+    const unlockScroll = () => {
+      clearInterval(checkLenisInterval)
+      window.removeEventListener('wheel', preventScroll, { capture: true })
+      window.removeEventListener('touchmove', preventScroll, { capture: true })
+      window.removeEventListener('keydown', preventScrollKeys, { capture: true })
+      document.body.style.overflow = previousOverflow
+      window.scrollTo(0, 0)
+      if (win.lenis) {
+        win.lenis.scrollTo(0, { immediate: true })
+        win.lenis.start()
+      }
+    }
+
     const runAnimation = () => {
       if (!isMounted || !containerRef.current || !logoWrapperRef.current || !textRef.current) return;
 
       const tl = gsap.timeline({
         onComplete: () => {
+          unlockScroll()
           if (isMounted) onComplete()
         }
       })
@@ -51,9 +96,13 @@ export const GlobalLoader = ({ onComplete }: { onComplete: () => void }) => {
     }
 
     // Slight delay to ensure React commits DOM
-    setTimeout(runAnimation, 100)
+    const timer = setTimeout(runAnimation, 100)
 
-    return () => { isMounted = false }
+    return () => { 
+      isMounted = false
+      clearTimeout(timer)
+      unlockScroll()
+    }
   }, [onComplete])
 
   return (
