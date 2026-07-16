@@ -1,4 +1,5 @@
 import { Hero } from '@/components/Hero'
+import { BrochureSection } from '@/components/BrochureSection'
 import { ProductCard } from '@/components/ProductCard'
 import { SafeHtmlRenderer } from '@/components/SafeHtmlRenderer'
 import { SEO } from '@/components/SEO'
@@ -104,6 +105,9 @@ export const HomePage = () => {
 
       {/* Handcrafted Premium 2D Hero */}
       <Hero />
+
+      {/* Interactive 3D Brochure & Catalog Section */}
+      <BrochureSection />
 
       {/* Features */}
       {featuresData?.items?.length > 0 && (

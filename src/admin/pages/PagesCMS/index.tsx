@@ -4,6 +4,7 @@ import { Home as HomeIcon, BookOpen, Leaf, MessageSquare, Globe, Sparkles } from
 import { HeroSectionEditor } from './components/HeroSectionEditor'
 import { RepeaterListEditor } from './components/RepeaterListEditor'
 import { RichTextEditor } from './components/RichTextEditor'
+import { BrochureEditor } from './components/BrochureEditor'
 
 export const PagesCMS: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'home' | 'about' | 'sustainability' | 'contact' | 'global'>('home')
@@ -112,6 +113,27 @@ export const PagesCMS: React.FC = () => {
                 secondaryBtnLink: '/about'
               }}
               onSave={(content) => handleSaveSection('home', 'hero', 'Home Hero Banner', content)}
+            />
+
+            <BrochureEditor
+              pageSlug="home"
+              sectionKey="brochure"
+              title="Interactive 3D Brochure & Catalog (`home/brochure`)"
+              initialContent={sectionsData['home:brochure'] || {
+                badgeText: 'Interactive Flipbook Catalog',
+                heading: 'Explore Our 2026 Export Brochure',
+                subheading: 'Experience our complete product specs, export tiers, and zero-waste manufacturing lifecycle directly in your browser.',
+                pdfUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+                pages: [
+                  { title: 'Cover & Vision', imageUrl: 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?q=80&w=800&auto=format&fit=crop', description: 'Zero-Waste & Plastic-Free Innovation' },
+                  { title: 'Organic Bamboo Range', imageUrl: 'https://images.unsplash.com/photo-1616401784845-180882ba9ba8?q=80&w=800&auto=format&fit=crop', description: 'Certified Antimicrobial Brushes & Utensils' },
+                  { title: 'Neem Wood Craftsmanship', imageUrl: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=800&auto=format&fit=crop', description: 'Handcrafted Combs & Culinary Boards' },
+                  { title: 'Natural Loofah & Gourd', imageUrl: 'https://images.unsplash.com/photo-1610557892470-55d9e80c0bce?q=80&w=800&auto=format&fit=crop', description: 'Unbleached Exfoliators & Scrubbers' },
+                  { title: 'Bulk & OEM Customization', imageUrl: 'https://images.unsplash.com/photo-1530587191325-3db32d826c18?q=80&w=800&auto=format&fit=crop', description: 'Custom Laser Engraving & Eco Packaging' },
+                  { title: 'Sustainability Metrics', imageUrl: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=800&auto=format&fit=crop', description: '50,000+ Tons of Plastic Prevented' }
+                ]
+              }}
+              onSave={(content) => handleSaveSection('home', 'brochure', 'Interactive 3D Brochure & Catalog', content)}
             />
 
             <RepeaterListEditor
