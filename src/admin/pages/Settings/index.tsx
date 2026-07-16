@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { api } from '@/lib/api'
 import { Save } from 'lucide-react'
+import { RichTextarea } from '@/admin/components/RichTextarea'
 
 export const Settings: React.FC = () => {
   const [settings, setSettings] = useState<any>(null)
@@ -74,7 +75,7 @@ export const Settings: React.FC = () => {
             <div className="sm:col-span-6">
               <label htmlFor="meta_description" className="block text-sm font-medium leading-6 text-gray-900">Default SEO Description</label>
               <div className="mt-2">
-                <textarea rows={3} name="meta_description" id="meta_description" value={settings.meta_description || ''} onChange={handleChange} className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 px-3 focus:ring-primary focus:ring-2 sm:text-sm sm:leading-6" />
+                <RichTextarea rows={3} name="meta_description" id="meta_description" value={settings.meta_description || ''} onChange={(val: string) => setSettings({ ...settings, meta_description: val })} />
               </div>
             </div>
 

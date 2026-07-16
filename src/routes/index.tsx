@@ -19,6 +19,7 @@ const AdminLogin = lazy(() => import('@/admin/pages/Login').then(m => ({ default
 const AdminDashboard = lazy(() => import('@/admin/pages/Dashboard').then(m => ({ default: m.Dashboard })))
 const AdminProducts = lazy(() => import('@/admin/pages/Products').then(m => ({ default: m.ProductsList })))
 const AdminProductEditor = lazy(() => import('@/admin/pages/Products/ProductEditor').then(m => ({ default: m.ProductEditor })))
+const AdminPagesCMS = lazy(() => import('@/admin/pages/PagesCMS').then(m => ({ default: m.PagesCMS })))
 const AdminCategories = lazy(() => import('@/admin/pages/Categories').then(m => ({ default: m.CategoriesList })))
 const AdminSettings = lazy(() => import('@/admin/pages/Settings').then(m => ({ default: m.Settings })))
 const AdminContacts = lazy(() => import('@/admin/pages/Contacts').then(m => ({ default: m.ContactsList })))
@@ -75,6 +76,7 @@ const router = createBrowserRouter([
               { path: "dashboard", element: withSuspense(AdminDashboard) },
               { path: "products", element: withSuspense(AdminProducts) },
               { path: "products/:id", element: withSuspense(AdminProductEditor) },
+              { path: "pages-cms", element: withSuspense(AdminPagesCMS) },
               { path: "categories", element: withSuspense(AdminCategories) },
               { path: "settings", element: withSuspense(AdminSettings) },
               { path: "contacts", element: withSuspense(AdminContacts) },

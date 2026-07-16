@@ -5,6 +5,8 @@ import { Link } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { api } from '@/lib/api'
 import { shareQRCode } from '@/lib/share'
+import { usePageSection } from '@/hooks/usePageSection'
+import { SafeHtmlRenderer } from '@/components/SafeHtmlRenderer'
 
 const WhatsAppIcon = ({ className }: { className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none" className={className}>
@@ -17,6 +19,11 @@ export const Footer = () => {
   const siteUrl = buildUrl('/')
   const [products, setProducts] = useState<any[]>([])
   const [contacts, setContacts] = useState<any[]>([])
+
+  const { data: footerData } = usePageSection('global', 'footer', {
+    description: 'Premium, sustainable, and export-quality eco-friendly products for a greener tomorrow.',
+    copyright: '© 2026 Ecoji. All rights reserved.'
+  })
 
   useEffect(() => {
     const fetchData = async () => {
@@ -45,9 +52,7 @@ export const Footer = () => {
           <Link to="/" className="inline-block">
             <img src="/logo.png" alt="Ecoji Logo" className="h-24 md:h-28 w-auto object-contain -ml-7" />
           </Link>
-          <p className="text-sm text-secondary-foreground/80">
-            Premium, sustainable, and export-quality eco-friendly products for a greener tomorrow.
-          </p>
+          <SafeHtmlRenderer html={footerData?.description || 'Premium, sustainable, and export-quality eco-friendly products for a greener tomorrow.'} className="text-sm text-secondary-foreground/80 [&_p]:m-0" />
         </div>
         <div>
           <h3 className="font-semibold mb-4">Products</h3>
@@ -172,7 +177,7 @@ export const Footer = () => {
         </div>
       </div>
       <div className="container mt-12 pt-8 border-t border-border/50 text-sm text-secondary-foreground/60">
-        &copy; 2026 Ecoji. All rights reserved.
+        <SafeHtmlRenderer html={footerData?.copyright || '© 2026 Ecoji. All rights reserved.'} className="[&_p]:m-0 [&_p]:inline" />
       </div>
     </footer>
   )

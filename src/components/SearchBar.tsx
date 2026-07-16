@@ -65,13 +65,13 @@ export const SearchBar = () => {
     navigate(`/products/${slug}`)
   }
 
-  // Desktop Component
+  // Desktop Component - Option 1: Apple / Modern Glass Shimmer
   const DesktopSearch = (
-    <div ref={containerRef} className="relative hidden md:block w-64">
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+    <div ref={containerRef} className="relative hidden md:block w-56 lg:w-64 focus-within:w-72 lg:focus-within:w-80 transition-all duration-300 ease-out">
+      <div className="relative group rounded-full transition-all duration-300 hover:shadow-[0_2px_14px_rgba(34,197,94,0.12)] focus-within:shadow-[0_4px_20px_rgba(34,197,94,0.2)]">
+        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-all duration-300 group-hover:text-foreground group-focus-within:text-primary group-focus-within:scale-105" />
         <Input 
-          className="w-full pl-9 bg-secondary/20 border-transparent focus:bg-background focus:border-primary transition-all rounded-full h-10"
+          className="w-full pl-10 pr-4 bg-secondary/30 hover:bg-secondary/40 backdrop-blur-md border border-border/40 hover:border-primary/20 focus:bg-background focus:border-primary/40 transition-all duration-300 rounded-full h-10 text-sm"
           placeholder="Search products..."
           value={query}
           onChange={(e) => {
@@ -83,7 +83,7 @@ export const SearchBar = () => {
       </div>
       
       {isOpen && query.length > 0 && (
-        <div className="absolute top-full mt-2 w-full max-w-sm right-0 bg-background/95 backdrop-blur-xl border border-border/50 rounded-2xl shadow-2xl overflow-hidden z-[100]">
+        <div className="absolute top-full mt-2 w-full max-w-sm right-0 bg-background/95 backdrop-blur-xl border border-border/50 rounded-2xl shadow-2xl overflow-hidden z-[100] animate-in fade-in slide-in-from-top-2 duration-200">
           {isLoading ? (
             <div className="p-4 text-center flex justify-center">
               <Loader2 className="animate-spin text-primary h-5 w-5" />
@@ -94,11 +94,11 @@ export const SearchBar = () => {
                 <button
                   key={product.id}
                   onClick={() => handleSelect(product.slug)}
-                  className="w-full text-left px-4 py-3 hover:bg-secondary/50 flex items-center gap-3 transition-colors"
+                  className="w-full text-left px-4 py-3 hover:bg-primary/10 flex items-center gap-3 transition-all duration-150 active:scale-98 group/item"
                 >
-                  <img src={product.images[0]} alt={product.name} className="w-10 h-10 rounded-md object-cover" />
+                  <img src={product.images[0]} alt={product.name} className="w-10 h-10 rounded-md object-cover transition-transform duration-200 group-hover/item:scale-105" />
                   <div>
-                    <div className="font-medium text-sm">{product.name}</div>
+                    <div className="font-medium text-sm group-hover/item:text-primary transition-colors">{product.name}</div>
                     <div className="text-xs text-muted-foreground">{product.category}</div>
                   </div>
                 </button>
@@ -117,10 +117,15 @@ export const SearchBar = () => {
   // Mobile Component (Full Screen Overlay)
   const MobileSearch = (
     <div className="md:hidden">
-      <Button variant="ghost" size="icon" onClick={() => {
-        setIsMobileOpen(true)
-        setTimeout(() => inputRef.current?.focus(), 100)
-      }}>
+      <Button 
+        variant="ghost" 
+        size="icon" 
+        className="rounded-full transition-all duration-200 hover:bg-primary/10 hover:text-primary active:scale-90"
+        onClick={() => {
+          setIsMobileOpen(true)
+          setTimeout(() => inputRef.current?.focus(), 100)
+        }}
+      >
         <Search className="h-5 w-5" />
       </Button>
 

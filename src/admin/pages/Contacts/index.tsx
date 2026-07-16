@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { api } from '@/lib/api'
 import { Plus, Trash2, Mail, Phone, MapPin, Pen } from 'lucide-react'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
+import { RichTextarea } from '@/admin/components/RichTextarea'
 
 export const ContactsList: React.FC = () => {
   const [contacts, setContacts] = useState<any[]>([])
@@ -204,13 +205,13 @@ export const ContactsList: React.FC = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Value / Details</label>
-                <textarea
+                <RichTextarea
                   required
                   rows={3}
-                  value={value}
-                  onChange={e => setValue(e.target.value)}
+                  value={value || ''}
+                  onChange={val => setValue(val)}
                   placeholder="e.g. ecoji.office@gmail.com or +91 9876543210"
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary text-sm"
+                  className="mt-1"
                 />
               </div>
               <div>

@@ -10,7 +10,8 @@ import {
   Palette,
   Type,
   Link as LinkIcon,
-  MessageSquare
+  MessageSquare,
+  Sparkles
 } from 'lucide-react'
 
 export const AdminLayout: React.FC = () => {
@@ -20,6 +21,7 @@ export const AdminLayout: React.FC = () => {
   const navigation = [
     { name: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
     { name: 'Products', href: '/admin/products', icon: Package },
+    { name: 'Pages CMS', href: '/admin/pages-cms', icon: Sparkles },
     { name: 'Categories', href: '/admin/categories', icon: Tags },
     { name: 'Themes', href: '/admin/themes', icon: Palette },
     { name: 'Fonts', href: '/admin/fonts', icon: Type },

@@ -17,7 +17,7 @@ const LOCAL_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOi
 // ------------------------------------------
 // Set `USE_PROD_DB_IN_DEV = true`  -> Connects your local dev server (`localhost:5180`) to the Production Cloud Database.
 // Set `USE_PROD_DB_IN_DEV = false` -> Connects your local dev server (`localhost:5180`) to the Local Docker Database (`127.0.0.1:54321`).
-export const USE_PROD_DB_IN_DEV = true
+export const USE_PROD_DB_IN_DEV = false
 
 // ------------------------------------------
 // 🔒 STRICT PRODUCTION SAFETY GUARANTEE

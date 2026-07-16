@@ -106,6 +106,51 @@ export const api = {
       return data
     }
   },
+  pagesContent: {
+    async list(pageSlug?: string) {
+      let query = supabase.from('page_contents').select('*').order('section_key', { ascending: true })
+      if (pageSlug) {
+        query = query.eq('page_slug', pageSlug)
+      }
+      const { data, error } = await query
+      if (error && error.code !== 'PGRST116') {
+        console.warn('page_contents not found or error:', error.message)
+        return []
+      }
+      return data || []
+    },
+    async get(pageSlug: string, sectionKey: string) {
+      const { data, error } = await supabase
+        .from('page_contents')
+        .select('*')
+        .eq('page_slug', pageSlug)
+        .eq('section_key', sectionKey)
+        .single()
+      if (error && error.code !== 'PGRST116') return null
+      return data
+    },
+    async upsert(payload: { page_slug: string; section_key: string; title: string; content: any; is_active?: boolean }) {
+      const { data, error } = await supabase
+        .from('page_contents')
+        .upsert({
+          ...payload,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'page_slug,section_key' })
+        .select()
+        .single()
+      if (error) throw error
+      return data
+    },
+    async uploadImage(file: File, pageSlug: string, sectionKey: string) {
+      const fileName = `pages/${pageSlug}/${sectionKey}/${Date.now()}-${file.name}`
+      const { error } = await supabase.storage
+        .from('products')
+        .upload(fileName, file)
+      if (error) throw error
+      const { data: publicUrlData } = supabase.storage.from('products').getPublicUrl(fileName)
+      return publicUrlData.publicUrl
+    }
+  },
   contacts: {
     async list() {
       const { data, error } = await supabase

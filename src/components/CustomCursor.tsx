@@ -19,11 +19,11 @@ export const CustomCursor = () => {
   useEffect(() => {
     if (isTouchDevice || cursorStyle === 'default') return
 
-    // QuickTo for high performance following
-    const xMoveDot = gsap.quickTo(dotRef.current, "x", { duration: 0.1, ease: "power3" })
-    const yMoveDot = gsap.quickTo(dotRef.current, "y", { duration: 0.1, ease: "power3" })
-    const xMoveRing = gsap.quickTo(ringRef.current, "x", { duration: 0.4, ease: "power3" })
-    const yMoveRing = gsap.quickTo(ringRef.current, "y", { duration: 0.4, ease: "power3" })
+    // QuickTo for high performance following (faster response to eliminate lag feel)
+    const xMoveDot = gsap.quickTo(dotRef.current, "x", { duration: 0.08, ease: "power3" })
+    const yMoveDot = gsap.quickTo(dotRef.current, "y", { duration: 0.08, ease: "power3" })
+    const xMoveRing = gsap.quickTo(ringRef.current, "x", { duration: 0.18, ease: "power3" })
+    const yMoveRing = gsap.quickTo(ringRef.current, "y", { duration: 0.18, ease: "power3" })
 
     const onMouseMove = (e: MouseEvent) => {
       xMoveDot(e.clientX)
@@ -32,15 +32,15 @@ export const CustomCursor = () => {
       yMoveRing(e.clientY)
       
       if (cursorRef.current && cursorRef.current.style.opacity === '0') {
-        gsap.to(cursorRef.current, { opacity: 1, duration: 0.3 })
+        gsap.to(cursorRef.current, { opacity: 1, duration: 0.2 })
       }
     }
 
     const onMouseLeave = () => {
-      if (cursorRef.current) gsap.to(cursorRef.current, { opacity: 0, duration: 0.3 })
+      if (cursorRef.current) gsap.to(cursorRef.current, { opacity: 0, duration: 0.2 })
     }
     const onMouseEnter = () => {
-      if (cursorRef.current) gsap.to(cursorRef.current, { opacity: 1, duration: 0.3 })
+      if (cursorRef.current) gsap.to(cursorRef.current, { opacity: 1, duration: 0.2 })
     }
 
     let currentTarget: HTMLElement | null = null;
@@ -52,11 +52,11 @@ export const CustomCursor = () => {
 
       // Check for buttons/links
       if (target.closest('a') || target.closest('button') || target.tagName.toLowerCase() === 'input') {
-        gsap.to(dotRef.current, { scale: 0.5, duration: 0.2 })
-        gsap.to(ringRef.current, { scale: 1.5, backgroundColor: 'rgba(255,255,255,0.1)', borderColor: 'rgba(255,255,255,0.5)', duration: 0.2 })
+        gsap.to(dotRef.current, { scale: 0.6, duration: 0.15 })
+        gsap.to(ringRef.current, { scale: 1.3, backgroundColor: 'rgba(34, 197, 94, 0.15)', borderColor: 'rgba(34, 197, 94, 0.8)', duration: 0.15 })
       } else {
-        gsap.to(dotRef.current, { scale: 1, duration: 0.2 })
-        gsap.to(ringRef.current, { scale: 1, backgroundColor: 'transparent', borderColor: 'rgba(255,255,255,1)', duration: 0.2 })
+        gsap.to(dotRef.current, { scale: 1, duration: 0.15 })
+        gsap.to(ringRef.current, { scale: 1, backgroundColor: 'transparent', borderColor: 'rgba(34, 197, 94, 0.7)', duration: 0.15 })
       }
 
       // Check for context
@@ -64,11 +64,11 @@ export const CustomCursor = () => {
       if (contextEl && (cursorStyle === 'context' || cursorStyle === 'premium')) {
         setContextText(contextEl.dataset.cursor || '')
         setIsHovering(true)
-        gsap.to(ringRef.current, { width: 96, height: 96, marginLeft: -48, marginTop: -48, backgroundColor: 'white', border: 'none', duration: 0.3 })
+        gsap.to(ringRef.current, { width: 88, height: 88, marginLeft: -44, marginTop: -44, backgroundColor: 'rgba(34, 197, 94, 0.95)', border: '2px solid rgba(255,255,255,0.4)', duration: 0.25 })
       } else {
         setContextText('')
         setIsHovering(false)
-        gsap.to(ringRef.current, { width: 32, height: 32, marginLeft: -16, marginTop: -16, backgroundColor: 'transparent', border: '1px solid white', duration: 0.3 })
+        gsap.to(ringRef.current, { width: 32, height: 32, marginLeft: -16, marginTop: -16, backgroundColor: 'transparent', border: '1.5px solid rgba(34, 197, 94, 0.7)', duration: 0.25 })
       }
     }
 
@@ -122,7 +122,7 @@ export const CustomCursor = () => {
   return (
     <div 
       ref={cursorRef} 
-      className={`fixed inset-0 pointer-events-none z-[999999] ${isPremium || isContext ? 'mix-blend-difference' : ''}`}
+      className="fixed inset-0 pointer-events-none z-[999999]"
       style={{ opacity: 0 }}
     >
       {/* Inner Element */}
@@ -130,8 +130,8 @@ export const CustomCursor = () => {
         ref={dotRef} 
         className={`absolute top-0 left-0 flex items-center justify-center transition-colors duration-300
           ${isEco ? '-ml-3 -mt-3 text-primary drop-shadow-[0_0_8px_rgba(76,175,80,0.8)]' : ''}
-          ${isPremium ? 'w-1 h-1 -ml-[2px] -mt-[2px] rounded-full bg-white' : ''}
-          ${isContext ? 'w-3 h-3 -ml-1.5 -mt-1.5 rounded-full bg-white' : ''}
+          ${isPremium ? 'w-1 h-1 -ml-[2px] -mt-[2px] rounded-full bg-white shadow-md' : ''}
+          ${isContext ? 'w-3 h-3 -ml-1.5 -mt-1.5 rounded-full bg-primary shadow-sm' : ''}
         `}
       >
         {isEco && <Leaf className="w-6 h-6 fill-primary" />}
@@ -142,13 +142,13 @@ export const CustomCursor = () => {
         ref={ringRef} 
         className={`absolute top-0 left-0 flex items-center justify-center transition-colors duration-300
           ${isEco ? 'w-12 h-12 -ml-6 -mt-6 rounded-full border border-primary/50 bg-primary/5' : ''}
-          ${isPremium ? 'w-10 h-10 -ml-5 -mt-5 rounded-full border border-white' : ''}
-          ${isContext ? 'w-8 h-8 -ml-4 -mt-4 rounded-full border-2 border-white' : ''}
+          ${isPremium ? 'w-10 h-10 -ml-5 -mt-5 rounded-full border border-white/80 shadow-sm' : ''}
+          ${isContext ? 'w-8 h-8 -ml-4 -mt-4 rounded-full border-1.5 border-primary/70' : ''}
         `}
       >
         <div 
           ref={contextRef}
-          className={`text-[10px] text-black font-bold uppercase tracking-widest transition-opacity duration-300 ${showContext ? 'opacity-100' : 'opacity-0'}`}
+          className={`text-[10px] text-white font-bold uppercase tracking-widest transition-opacity duration-300 drop-shadow-md ${showContext ? 'opacity-100' : 'opacity-0'}`}
         >
           {contextText}
         </div>

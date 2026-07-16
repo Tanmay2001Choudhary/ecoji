@@ -1,4 +1,5 @@
 import { SEO } from '@/components/SEO'
+import { SafeHtmlRenderer } from '@/components/SafeHtmlRenderer'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -9,6 +10,7 @@ import { useRef, useState, useEffect } from 'react'
 import { api } from '@/lib/api'
 import { useGSAP } from '@gsap/react'
 import gsap from 'gsap'
+import { usePageSection } from '@/hooks/usePageSection'
 
 const WhatsAppIcon = ({ className }: { className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none" className={className}>
@@ -17,16 +19,27 @@ const WhatsAppIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
-const faqs = [
-  { question: 'Do you ship internationally?', answer: 'Yes, we offer carbon-neutral international shipping to select countries.' },
-  { question: 'What is your return policy?', answer: 'We accept returns within 30 days for unused products in their original plastic-free packaging.' },
-  { question: 'Do you offer wholesale?', answer: 'Yes! Please contact us at wholesale@ecoji.com for bulk orders.' },
-  { question: 'How do I track my order?', answer: 'Once your order ships, you will receive a tracking link via email.' }
-]
-
 export const ContactPage = () => {
   const containerRef = useRef<HTMLDivElement>(null)
   const [contacts, setContacts] = useState<any[]>([])
+
+  const { data: headerData } = usePageSection('contact', 'header', {
+    heading: 'Get In Touch.',
+    subheading: 'Whether you have a question about our products, sustainability practices, or wholesale, our team is here to help.'
+  })
+
+  const { data: faqsData } = usePageSection('contact', 'faqs', {
+    items: [
+      { question: 'Do you ship internationally?', answer: 'Yes, we offer carbon-neutral international shipping to select countries.' },
+      { question: 'What is your return policy?', answer: 'We accept returns within 30 days for unused products in their original plastic-free packaging.' },
+      { question: 'Do you offer wholesale?', answer: 'Yes! Please contact us at wholesale@ecoji.com for bulk orders.' },
+      { question: 'How do I track my order?', answer: 'Once your order ships, you will receive a tracking link via email.' }
+    ]
+  })
+
+  const { data: formHeader } = usePageSection('contact', 'form_header', {
+    heading: 'Send a message'
+  })
 
   useEffect(() => {
     const fetchContacts = async () => {
@@ -63,10 +76,10 @@ export const ContactPage = () => {
 
       <div className="container max-w-7xl mx-auto pt-32">
         <div className="contact-header text-center mb-24">
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 tracking-tighter">Get In <span className="text-primary italic">Touch.</span></h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto font-light leading-relaxed">
-            Whether you have a question about our products, sustainability practices, or wholesale, our team is here to help.
-          </p>
+          <h1 className="text-5xl md:text-7xl font-bold mb-6 tracking-tighter">
+            {typeof headerData?.heading === 'string' ? headerData.heading.replace(/<[^>]*>/g, '') : 'Get In Touch.'}
+          </h1>
+          <SafeHtmlRenderer html={headerData?.subheading || 'Whether you have a question about our products, sustainability practices, or wholesale, our team is here to help.'} className="text-xl text-muted-foreground max-w-2xl mx-auto font-light leading-relaxed [&_p]:m-0" />
         </div>
 
         <div className="grid lg:grid-cols-5 gap-12 lg:gap-24 items-start mb-32">
@@ -108,7 +121,7 @@ export const ContactPage = () => {
               <div className="p-3 bg-primary/10 rounded-2xl text-primary">
                 <MessageSquare className="w-6 h-6" />
               </div>
-              <h2 className="text-3xl font-bold tracking-tight">Send a message</h2>
+              <h2 className="text-3xl font-bold tracking-tight">{formHeader?.heading || 'Send a message'}</h2>
             </div>
             
             <form className="space-y-8" onSubmit={(e) => e.preventDefault()}>
@@ -138,17 +151,21 @@ export const ContactPage = () => {
         </div>
 
         {/* FAQs */}
-        <div className="faq-section max-w-4xl mx-auto bg-secondary/10 rounded-[3rem] p-10 md:p-16 border border-border/50">
-          <h2 className="text-4xl font-bold mb-10 text-center tracking-tight">Frequently Asked Questions</h2>
-          <Accordion className="w-full space-y-4">
-            {faqs.map((faq, idx) => (
-              <AccordionItem key={idx} value={`faq-${idx}`} className="border-none bg-background rounded-2xl px-6 shadow-sm">
-                <AccordionTrigger className="text-left text-lg font-semibold py-6 hover:no-underline">{faq.question}</AccordionTrigger>
-                <AccordionContent className="text-muted-foreground text-base leading-relaxed pb-6">{faq.answer}</AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
-        </div>
+        {faqsData?.items?.length > 0 && (
+          <div id="faq-section" className="faq-section max-w-4xl mx-auto bg-secondary/10 rounded-[3rem] p-10 md:p-16 border border-border/50">
+            <h2 className="text-4xl font-bold mb-10 text-center tracking-tight">Frequently Asked Questions</h2>
+            <Accordion className="w-full space-y-4">
+              {faqsData.items.map((faq: any, idx: number) => (
+                <AccordionItem key={idx} value={`faq-${idx}`} className="border-none bg-background rounded-2xl px-6 shadow-sm">
+                  <AccordionTrigger className="text-left text-lg font-semibold py-6 hover:no-underline">{faq.question}</AccordionTrigger>
+                  <AccordionContent className="text-muted-foreground text-base leading-relaxed pb-6">
+                    <SafeHtmlRenderer html={faq.answer} className="[&_p]:m-0" />
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </div>
+        )}
       </div>
     </div>
   )
