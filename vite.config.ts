@@ -15,6 +15,6 @@ export default defineConfig({
     strictPort: false,
   },
   optimizeDeps: {
-    include: ['react-pageflip', 'page-flip'],
+    include: ['react-pageflip', 'page-flip', 'react-pdf', 'pdfjs-dist'],
   }
 })

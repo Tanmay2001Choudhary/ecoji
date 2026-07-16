@@ -1,9 +1,15 @@
 import React, { useState, useRef, useEffect, forwardRef } from 'react'
 import HTMLFlipBook from 'react-pageflip'
+import { Document, Page, pdfjs } from 'react-pdf'
+import 'react-pdf/dist/Page/AnnotationLayer.css'
+import 'react-pdf/dist/Page/TextLayer.css'
 import { BookOpen, Download, Maximize2, X, ChevronLeft, ChevronRight, Pause, Play, Sparkles, FileText, CheckCircle2, Eye, Layers } from 'lucide-react'
 import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { usePageSection } from '@/hooks/usePageSection'
+
+// Set up pdf.js worker for Vite & modern browsers
+pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`
 
 interface PageProps {
   title?: string
@@ -99,6 +105,31 @@ const BrochurePage = forwardRef<HTMLDivElement, PageProps>(
 )
 BrochurePage.displayName = 'BrochurePage'
 
+const BrochurePdfPage = forwardRef<HTMLDivElement, { pageNumber: number; totalPages: number; width: number }>(
+  ({ pageNumber, totalPages, width }, ref) => {
+    return (
+      <div
+        ref={ref}
+        className="bg-white dark:bg-zinc-900 border border-border/40 overflow-hidden shadow-inner flex flex-col justify-between select-none"
+      >
+        <div className="flex-1 flex items-center justify-center overflow-hidden bg-white">
+          <Page
+            pageNumber={pageNumber}
+            width={width}
+            renderTextLayer={false}
+            renderAnnotationLayer={false}
+          />
+        </div>
+        <div className="flex items-center justify-between border-t border-border/20 px-4 py-2 bg-zinc-50 dark:bg-zinc-900/90 text-[10px] text-muted-foreground font-mono z-10">
+          <span>Ecoji 2026 Export Catalog</span>
+          <span>{pageNumber} / {totalPages}</span>
+        </div>
+      </div>
+    )
+  }
+)
+BrochurePdfPage.displayName = 'BrochurePdfPage'
+
 export const BrochureSection: React.FC = () => {
   const { data: brochureData } = usePageSection('home', 'brochure', {
     badgeText: 'Interactive Flipbook Catalog',
@@ -140,7 +171,7 @@ export const BrochureSection: React.FC = () => {
   })
 
   const pagesList = brochureData?.pages && brochureData.pages.length > 0 ? brochureData.pages : []
-  const totalPages = pagesList.length || 1
+  const staticTotalPages = pagesList.length || 1
 
   const flipBookRef = useRef<any>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -151,6 +182,13 @@ export const BrochureSection: React.FC = () => {
   const [isVisible, setIsVisible] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [viewMode, setViewMode] = useState<'flipbook' | 'pdf'>('flipbook')
+
+  // PDF specific state
+  const [numPdfPages, setNumPdfPages] = useState<number | null>(null)
+  const [isPdfError, setIsPdfError] = useState(false)
+
+  const hasValidPdf = brochureData?.pdfUrl && brochureData.pdfUrl !== '#' && !isPdfError && numPdfPages !== null && numPdfPages > 0
+  const activeTotalPages = hasValidPdf ? numPdfPages : staticTotalPages
 
   // IntersectionObserver to only auto-flip when visible
   useEffect(() => {
@@ -169,13 +207,13 @@ export const BrochureSection: React.FC = () => {
 
   // Auto-flip interval (every 5 seconds when visible, unpaused, unhovered, and in flipbook mode)
   useEffect(() => {
-    if (!isVisible || isPaused || isHovered || isModalOpen || viewMode !== 'flipbook' || totalPages <= 1) return
+    if (!isVisible || isPaused || isHovered || isModalOpen || viewMode !== 'flipbook' || activeTotalPages <= 1) return
 
     const timer = setInterval(() => {
       if (flipBookRef.current?.pageFlip) {
         const flip = flipBookRef.current.pageFlip()
         const currentIndex = flip.getCurrentPageIndex()
-        if (currentIndex >= totalPages - 1) {
+        if (currentIndex >= activeTotalPages - 1) {
           flip.flip(0)
         } else {
           flip.flipNext()
@@ -184,7 +222,7 @@ export const BrochureSection: React.FC = () => {
     }, 5000)
 
     return () => clearInterval(timer)
-  }, [isVisible, isPaused, isHovered, isModalOpen, viewMode, totalPages])
+  }, [isVisible, isPaused, isHovered, isModalOpen, viewMode, activeTotalPages])
 
   const handleFlip = (e: any) => {
     setCurrentPage(e.data)
@@ -222,6 +260,20 @@ export const BrochureSection: React.FC = () => {
       {/* Background Organic Glow */}
       <div className="absolute top-1/2 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[140px] pointer-events-none -z-10" />
       <div className="absolute bottom-10 right-1/4 w-[400px] h-[400px] bg-emerald-500/5 dark:bg-emerald-400/10 rounded-full blur-[120px] pointer-events-none -z-10" />
+
+      {/* Hidden Document loader to read uploaded PDF page count if present */}
+      {brochureData?.pdfUrl && brochureData.pdfUrl !== '#' && (
+        <div className="hidden">
+          <Document
+            file={brochureData.pdfUrl}
+            onLoadSuccess={({ numPages }) => {
+              setNumPdfPages(numPages)
+              setIsPdfError(false)
+            }}
+            onLoadError={() => setIsPdfError(true)}
+          />
+        </div>
+      )}
 
       <div className="container max-w-6xl mx-auto px-4">
         {/* Section Header */}
@@ -359,7 +411,7 @@ export const BrochureSection: React.FC = () => {
               {/* Top Toolbar */}
               <div className="w-full flex items-center justify-between gap-4 mb-4 px-2 text-xs font-semibold text-muted-foreground">
                 <div className="flex items-center gap-2">
-                  <span className="text-primary font-mono font-bold">Page {currentPage + 1} of {totalPages}</span>
+                  <span className="text-primary font-mono font-bold">Page {currentPage + 1} of {activeTotalPages}</span>
                   {isHovered && <span className="text-[10px] bg-secondary px-2 py-0.5 rounded-full text-foreground">Paused on Hover</span>}
                 </div>
 
@@ -381,7 +433,7 @@ export const BrochureSection: React.FC = () => {
                 </div>
               </div>
 
-              {/* The HTMLFlipBook Engine with strict fixed sizing for 100% reliable 3D matrix calculation */}
+              {/* The HTMLFlipBook Engine rendering Real PDF Pages OR static fallback pages */}
               <div className="flex items-center justify-center my-2 select-none shadow-2xl">
                 <HTMLFlipBook
                   ref={flipBookRef}
@@ -410,17 +462,28 @@ export const BrochureSection: React.FC = () => {
                   showPageCorners={true}
                   disableFlipByClick={false}
                 >
-                  {pagesList.map((page: any, index: number) => (
-                    <BrochurePage
-                      key={index}
-                      pageNumber={index + 1}
-                      totalPages={totalPages}
-                      title={page.title}
-                      imageUrl={page.imageUrl}
-                      description={page.description}
-                      isCover={index === 0 || index === totalPages - 1}
-                    />
-                  ))}
+                  {hasValidPdf ? (
+                    Array.from(new Array(numPdfPages), (_, index) => (
+                      <BrochurePdfPage
+                        key={`pdf_page_${index + 1}`}
+                        pageNumber={index + 1}
+                        totalPages={numPdfPages!}
+                        width={380}
+                      />
+                    ))
+                  ) : (
+                    pagesList.map((page: any, index: number) => (
+                      <BrochurePage
+                        key={index}
+                        pageNumber={index + 1}
+                        totalPages={staticTotalPages}
+                        title={page.title}
+                        imageUrl={page.imageUrl}
+                        description={page.description}
+                        isCover={index === 0 || index === staticTotalPages - 1}
+                      />
+                    ))
+                  )}
                 </HTMLFlipBook>
               </div>
 
@@ -436,7 +499,7 @@ export const BrochureSection: React.FC = () => {
                 </button>
 
                 <div className="flex items-center gap-1.5 overflow-x-auto py-1 max-w-[160px] sm:max-w-[220px]">
-                  {pagesList.map((_: any, idx: number) => (
+                  {Array.from(new Array(activeTotalPages), (_, idx) => (
                     <button
                       key={idx}
                       onClick={() => {
@@ -457,7 +520,7 @@ export const BrochureSection: React.FC = () => {
 
                 <button
                   onClick={nextPage}
-                  disabled={currentPage >= totalPages - 1}
+                  disabled={currentPage >= activeTotalPages - 1}
                   className="flex items-center gap-1 px-4 py-2 rounded-xl border border-border/50 bg-background hover:bg-secondary/60 disabled:opacity-40 disabled:pointer-events-none text-xs font-semibold transition-all shadow-sm"
                 >
                   <span>Next</span>
@@ -469,26 +532,28 @@ export const BrochureSection: React.FC = () => {
         )}
       </div>
 
-      {/* Fullscreen Modal Overlay Overlay */}
+      {/* Fullscreen Luxury Editorial Book Modal Overlay */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-[99999] bg-black/90 backdrop-blur-xl flex flex-col justify-between p-4 sm:p-8 animate-in fade-in duration-300">
+        <div className="fixed inset-0 z-[99999] bg-black/95 backdrop-blur-2xl flex flex-col justify-between p-4 sm:p-8 animate-in fade-in duration-300">
           {/* Modal Header Bar */}
-          <div className="w-full flex items-center justify-between text-white pb-4 border-b border-white/10">
+          <div className="w-full max-w-6xl mx-auto flex items-center justify-between text-white pb-4 border-b border-white/10">
             <div className="flex items-center gap-3">
-              <BookOpen className="w-6 h-6 text-primary" />
+              <div className="p-2.5 rounded-xl bg-primary/20 text-primary">
+                <BookOpen className="w-6 h-6" />
+              </div>
               <div>
-                <h3 className="font-bold text-base sm:text-lg">Ecoji 2026 Global Export Catalog</h3>
-                <p className="text-xs text-zinc-400">Fullscreen Interactive Flipbook (`Page {currentPage + 1} of {totalPages}`)</p>
+                <h3 className="font-extrabold text-base sm:text-xl text-white tracking-tight">Ecoji 2026 Global Export Catalog</h3>
+                <p className="text-xs text-zinc-400 font-mono">Fullscreen Editorial Reader (`Page {currentPage + 1} of {activeTotalPages}`)</p>
               </div>
             </div>
 
             <div className="flex items-center gap-3">
               <button
                 onClick={handleDownload}
-                className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-full bg-primary hover:bg-primary/90 text-white text-xs font-bold tracking-wider uppercase transition-colors shadow-lg"
+                className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary hover:bg-primary/90 text-white text-xs font-bold tracking-wider uppercase transition-all shadow-xl shadow-primary/20"
               >
                 <Download className="w-4 h-4" />
-                <span>Download PDF</span>
+                <span>Download Original PDF</span>
               </button>
               <button
                 onClick={() => setIsModalOpen(false)}
@@ -500,71 +565,82 @@ export const BrochureSection: React.FC = () => {
             </div>
           </div>
 
-          {/* Fullscreen Flipbook Stage */}
-          <div className="flex-1 flex items-center justify-center my-4 overflow-hidden">
+          {/* Fullscreen Flipbook Stage — Large & Magnificent */}
+          <div className="flex-1 flex items-center justify-center my-6 overflow-hidden">
             <HTMLFlipBook
-              width={460}
-              height={620}
+              width={540}
+              height={720}
               size="fixed"
-              minWidth={320}
-              maxWidth={600}
-              minHeight={420}
-              maxHeight={800}
+              minWidth={360}
+              maxWidth={700}
+              minHeight={480}
+              maxHeight={900}
               drawShadow={true}
               showCover={true}
               mobileScrollSupport={true}
               onFlip={handleFlip}
-              className="rounded-2xl shadow-2xl border border-white/20"
+              className="rounded-3xl shadow-2xl border border-white/20"
               style={{}}
               startPage={currentPage}
               flippingTime={800}
               usePortrait={true}
               startZIndex={0}
               autoSize={true}
-              maxShadowOpacity={0.6}
+              maxShadowOpacity={0.7}
               clickEventForward={true}
               useMouseEvents={true}
               swipeDistance={30}
               showPageCorners={true}
               disableFlipByClick={false}
             >
-              {pagesList.map((page: any, index: number) => (
-                <BrochurePage
-                  key={index}
-                  pageNumber={index + 1}
-                  totalPages={totalPages}
-                  title={page.title}
-                  imageUrl={page.imageUrl}
-                  description={page.description}
-                  isCover={index === 0 || index === totalPages - 1}
-                />
-              ))}
+              {hasValidPdf ? (
+                Array.from(new Array(numPdfPages), (_, index) => (
+                  <BrochurePdfPage
+                    key={`modal_pdf_page_${index + 1}`}
+                    pageNumber={index + 1}
+                    totalPages={numPdfPages!}
+                    width={540}
+                  />
+                ))
+              ) : (
+                pagesList.map((page: any, index: number) => (
+                  <BrochurePage
+                    key={index}
+                    pageNumber={index + 1}
+                    totalPages={staticTotalPages}
+                    title={page.title}
+                    imageUrl={page.imageUrl}
+                    description={page.description}
+                    isCover={index === 0 || index === staticTotalPages - 1}
+                  />
+                ))
+              )}
             </HTMLFlipBook>
           </div>
 
           {/* Modal Footer Controls */}
-          <div className="w-full flex items-center justify-between text-white pt-4 border-t border-white/10">
+          <div className="w-full max-w-4xl mx-auto flex items-center justify-between text-white pt-4 border-t border-white/10">
             <button
               onClick={() => {
                 if (flipBookRef.current?.pageFlip) flipBookRef.current.pageFlip().flipPrev()
               }}
               disabled={currentPage === 0}
-              className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 disabled:opacity-30 text-sm font-semibold transition-colors"
+              className="flex items-center gap-2 px-6 py-3 rounded-xl bg-white/10 hover:bg-white/20 disabled:opacity-30 text-sm font-semibold transition-colors"
             >
               <ChevronLeft className="w-5 h-5" />
               <span>Previous Page</span>
             </button>
 
-            <span className="text-sm font-mono tracking-widest text-zinc-300">
-              {currentPage + 1} / {totalPages}
-            </span>
+            <div className="flex items-center gap-2 font-mono tracking-widest text-zinc-300 text-sm bg-white/5 px-4 py-2 rounded-full border border-white/10">
+              <span>Page {currentPage + 1} of {activeTotalPages}</span>
+            </div>
 
             <button
               onClick={() => {
                 if (flipBookRef.current?.pageFlip) flipBookRef.current.pageFlip().flipNext()
               }}
-              disabled={currentPage >= totalPages - 1}
-              className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 disabled:opacity-30 text-sm font-semibold transition-colors"
+              disabled={currentPage >= activeTotalPages - 1}
+              className="flex items-center gap-2 px-6 py-3 rounded-xl bg-white/10 hover:bg-white/20 disabled:opacity-30 text-sm font-semibold transition-colors"
             >
               <span>Next Page</span>
               <ChevronRight className="w-5 h-5" />
