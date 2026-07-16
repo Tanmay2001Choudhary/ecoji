@@ -13,5 +13,8 @@ export default defineConfig({
   server: {
     port: 5180,
     strictPort: false,
+  },
+  optimizeDeps: {
+    include: ['react-pageflip', 'page-flip', 'react-pdf', 'pdfjs-dist'],
   }
 })
