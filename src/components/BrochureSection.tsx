@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, forwardRef } from 'react'
 import HTMLFlipBook from 'react-pageflip'
-import { BookOpen, Download, Maximize2, X, ChevronLeft, ChevronRight, Pause, Play, Sparkles, FileText, CheckCircle2 } from 'lucide-react'
+import { BookOpen, Download, Maximize2, X, ChevronLeft, ChevronRight, Pause, Play, Sparkles, FileText, CheckCircle2, Eye, Layers } from 'lucide-react'
 import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { usePageSection } from '@/hooks/usePageSection'
@@ -20,7 +20,7 @@ const BrochurePage = forwardRef<HTMLDivElement, PageProps>(
       <div
         ref={ref}
         className={cn(
-          "relative h-full w-full bg-background dark:bg-card border border-border/40 overflow-hidden shadow-inner flex flex-col justify-between p-6 sm:p-8 select-none transition-all",
+          "bg-background dark:bg-card border border-border/40 overflow-hidden shadow-inner flex flex-col justify-between p-6 sm:p-8 select-none transition-all",
           isCover 
             ? "bg-gradient-to-br from-primary/15 via-emerald-600/10 to-background border-primary/30" 
             : "bg-background/95 dark:bg-zinc-900/95"
@@ -40,7 +40,7 @@ const BrochurePage = forwardRef<HTMLDivElement, PageProps>(
         </div>
 
         {/* Main Spread Content */}
-        <div className="flex-1 flex flex-col items-center justify-center py-4 z-10 relative">
+        <div className="flex-1 flex flex-col items-center justify-center py-4 z-10 relative overflow-hidden">
           {imageUrl ? (
             <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden shadow-md border border-border/20 mb-4 group">
               <img
@@ -150,8 +150,9 @@ export const BrochureSection: React.FC = () => {
   const [isHovered, setIsHovered] = useState(false)
   const [isVisible, setIsVisible] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [viewMode, setViewMode] = useState<'flipbook' | 'pdf'>('flipbook')
 
-  // IntersectionObserver to only auto-flip when visible (Zero-Lag CPU optimization)
+  // IntersectionObserver to only auto-flip when visible
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -166,12 +167,12 @@ export const BrochureSection: React.FC = () => {
     return () => observer.disconnect()
   }, [])
 
-  // Auto-flip interval (every 5 seconds when visible, unpaused, unhovered, and modal closed)
+  // Auto-flip interval (every 5 seconds when visible, unpaused, unhovered, and in flipbook mode)
   useEffect(() => {
-    if (!isVisible || isPaused || isHovered || isModalOpen || totalPages <= 1) return
+    if (!isVisible || isPaused || isHovered || isModalOpen || viewMode !== 'flipbook' || totalPages <= 1) return
 
     const timer = setInterval(() => {
-      if (flipBookRef.current?.pageFlip()) {
+      if (flipBookRef.current?.pageFlip) {
         const flip = flipBookRef.current.pageFlip()
         const currentIndex = flip.getCurrentPageIndex()
         if (currentIndex >= totalPages - 1) {
@@ -183,26 +184,30 @@ export const BrochureSection: React.FC = () => {
     }, 5000)
 
     return () => clearInterval(timer)
-  }, [isVisible, isPaused, isHovered, isModalOpen, totalPages])
+  }, [isVisible, isPaused, isHovered, isModalOpen, viewMode, totalPages])
 
   const handleFlip = (e: any) => {
     setCurrentPage(e.data)
   }
 
   const prevPage = () => {
-    if (flipBookRef.current?.pageFlip()) {
+    if (flipBookRef.current?.pageFlip) {
       flipBookRef.current.pageFlip().flipPrev()
     }
   }
 
   const nextPage = () => {
-    if (flipBookRef.current?.pageFlip()) {
+    if (flipBookRef.current?.pageFlip) {
       flipBookRef.current.pageFlip().flipNext()
     }
   }
 
   const handleDownload = () => {
     const url = brochureData?.pdfUrl || '#'
+    if (url === '#' || !url) {
+      alert('No PDF file uploaded yet. Please upload a PDF file from the Admin Dashboard.')
+      return
+    }
     const link = document.createElement('a')
     link.href = url
     link.setAttribute('download', 'Ecoji_Export_Catalog_2026.pdf')
@@ -220,7 +225,7 @@ export const BrochureSection: React.FC = () => {
 
       <div className="container max-w-6xl mx-auto px-4">
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-14">
+        <div className="text-center max-w-3xl mx-auto mb-12">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/20 bg-primary/5 text-primary text-xs font-semibold uppercase tracking-widest mb-4">
             <BookOpen className="w-3.5 h-3.5" />
             <span>{brochureData?.badgeText || 'Interactive Flipbook Catalog'}</span>
@@ -231,169 +236,237 @@ export const BrochureSection: React.FC = () => {
           <p className="text-base sm:text-lg text-muted-foreground font-light leading-relaxed">
             {brochureData?.subheading || 'Experience our complete product specs, export tiers, and zero-waste manufacturing lifecycle directly in your browser.'}
           </p>
+
+          {/* View Mode Toggle: Interactive 3D Spread vs Direct PDF Document */}
+          <div className="flex items-center justify-center gap-2 mt-8">
+            <button
+              onClick={() => setViewMode('flipbook')}
+              className={cn(
+                "flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all shadow-sm",
+                viewMode === 'flipbook'
+                  ? "bg-primary text-white shadow-md shadow-primary/20 scale-105"
+                  : "bg-background border border-border/60 text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <Layers className="w-4 h-4" />
+              <span>3D Interactive Spread</span>
+            </button>
+
+            <button
+              onClick={() => setViewMode('pdf')}
+              className={cn(
+                "flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all shadow-sm",
+                viewMode === 'pdf'
+                  ? "bg-primary text-white shadow-md shadow-primary/20 scale-105"
+                  : "bg-background border border-border/60 text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <Eye className="w-4 h-4" />
+              <span>Direct PDF Document View</span>
+            </button>
+          </div>
         </div>
 
-        {/* 3D Flipbook & Controls Stage */}
-        <div className="flex flex-col lg:flex-row items-center justify-center gap-10 lg:gap-16">
-          
-          {/* Left Action & Highlights Panel */}
-          <div className="w-full lg:w-80 flex flex-col gap-6 text-left order-2 lg:order-1">
-            <div className="p-6 rounded-3xl bg-background/80 dark:bg-card/80 backdrop-blur-md border border-border/60 shadow-xl shadow-primary/5 space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold uppercase tracking-wider text-primary">Interactive Reader</span>
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              </div>
-              
-              <h3 className="text-lg font-bold text-foreground">
-                Automatic 3D Page Curl
-              </h3>
-              <p className="text-xs text-muted-foreground font-light leading-relaxed">
-                Pages automatically advance every 5 seconds when in view. Grab any corner or use our controls below to turn pages at your pace.
-              </p>
-
-              <div className="pt-2 flex flex-col gap-3">
-                <button
-                  onClick={() => setIsModalOpen(true)}
-                  className={cn(buttonVariants({ variant: 'default', size: 'lg' }), "w-full justify-center gap-2 font-semibold shadow-lg shadow-primary/20")}
-                >
-                  <Maximize2 className="w-4 h-4" />
-                  <span>Open Fullscreen Flipbook</span>
-                </button>
-
-                <button
-                  onClick={handleDownload}
-                  className={cn(buttonVariants({ variant: 'outline', size: 'lg' }), "w-full justify-center gap-2 border-border/60 hover:bg-secondary/50 font-medium")}
-                >
-                  <Download className="w-4 h-4 text-primary" />
-                  <span>Download Full Catalog (.PDF)</span>
-                </button>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="p-4 rounded-2xl bg-background/60 border border-border/40 flex items-center gap-3">
-                <CheckCircle2 className="w-5 h-5 text-primary shrink-0" />
-                <span className="text-xs font-semibold text-foreground">Export Quality Verified</span>
-              </div>
-              <div className="p-4 rounded-2xl bg-background/60 border border-border/40 flex items-center gap-3">
-                <Sparkles className="w-5 h-5 text-primary shrink-0" />
-                <span className="text-xs font-semibold text-foreground">OEM Tiers & Specs</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Center 3D Flipbook Showcase */}
-          <div
-            className="relative order-1 lg:order-2 flex flex-col items-center justify-center py-4 px-2 sm:px-6 rounded-3xl bg-background/40 dark:bg-black/20 backdrop-blur-xl border border-border/50 shadow-2xl overflow-visible max-w-full"
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-          >
-            {/* Top Toolbar */}
-            <div className="w-full flex items-center justify-between gap-4 mb-4 px-2 text-xs font-semibold text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <span className="text-primary font-mono font-bold">Page {currentPage + 1} of {totalPages}</span>
-                {isHovered && <span className="text-[10px] bg-secondary px-2 py-0.5 rounded-full text-foreground">Paused on Hover</span>}
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setIsPaused(!isPaused)}
-                  className="p-1.5 rounded-full hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
-                  title={isPaused ? "Resume Auto-Flip" : "Pause Auto-Flip"}
-                >
-                  {isPaused ? <Play className="w-4 h-4 text-primary" /> : <Pause className="w-4 h-4" />}
-                </button>
-                <button
-                  onClick={() => setIsModalOpen(true)}
-                  className="p-1.5 rounded-full hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
-                  title="Fullscreen View"
-                >
-                  <Maximize2 className="w-4 h-4 text-primary" />
-                </button>
-              </div>
-            </div>
-
-            {/* The HTMLFlipBook Engine */}
-            <div className="flipbook-wrapper flex items-center justify-center my-2 select-none shadow-2xl">
-              <HTMLFlipBook
-                ref={flipBookRef}
-                width={360}
-                height={480}
-                size="stretch"
-                minWidth={280}
-                maxWidth={440}
-                minHeight={380}
-                maxHeight={580}
-                drawShadow={true}
-                showCover={true}
-                mobileScrollSupport={true}
-                onFlip={handleFlip}
-                className="rounded-2xl shadow-2xl border border-border/30"
-                style={{}}
-                startPage={0}
-                flippingTime={800}
-                usePortrait={true}
-                startZIndex={0}
-                autoSize={true}
-                maxShadowOpacity={0.5}
-                clickEventForward={true}
-                useMouseEvents={true}
-                swipeDistance={30}
-                showPageCorners={true}
-                disableFlipByClick={false}
-              >
-                {pagesList.map((page: any, index: number) => (
-                  <BrochurePage
-                    key={index}
-                    pageNumber={index + 1}
-                    totalPages={totalPages}
-                    title={page.title}
-                    imageUrl={page.imageUrl}
-                    description={page.description}
-                    isCover={index === 0 || index === totalPages - 1}
-                  />
-                ))}
-              </HTMLFlipBook>
-            </div>
-
-            {/* Bottom Controls Bar */}
-            <div className="w-full flex items-center justify-between gap-4 mt-6 px-2">
+        {viewMode === 'pdf' ? (
+          /* Direct PDF Viewer Mode */
+          <div className="w-full max-w-5xl mx-auto rounded-3xl overflow-hidden border border-border shadow-2xl bg-background/80 backdrop-blur-xl p-3 sm:p-6 flex flex-col items-center justify-center gap-4 animate-fade-in">
+            <div className="w-full flex items-center justify-between text-xs font-mono text-muted-foreground border-b border-border/40 pb-3">
+              <span className="font-bold text-foreground">Live Document Viewer (.PDF)</span>
               <button
-                onClick={prevPage}
-                disabled={currentPage === 0}
-                className="flex items-center gap-1 px-4 py-2 rounded-xl border border-border/50 bg-background hover:bg-secondary/60 disabled:opacity-40 disabled:pointer-events-none text-xs font-semibold transition-all shadow-sm"
+                onClick={handleDownload}
+                className="flex items-center gap-1.5 text-primary font-bold hover:underline"
               >
-                <ChevronLeft className="w-4 h-4" />
-                <span>Prev</span>
+                <Download className="w-3.5 h-3.5" />
+                <span>Download File</span>
               </button>
+            </div>
 
-              <div className="flex items-center gap-1.5 overflow-x-auto py-1 max-w-[160px] sm:max-w-[220px]">
-                {pagesList.map((_: any, idx: number) => (
+            {brochureData?.pdfUrl && brochureData.pdfUrl !== '#' ? (
+              <iframe
+                src={`${brochureData.pdfUrl}#toolbar=1&navpanes=0&view=FitH`}
+                title="Ecoji Export Brochure PDF"
+                className="w-full h-[600px] sm:h-[750px] rounded-2xl border border-border/30 shadow-inner bg-white"
+              />
+            ) : (
+              <div className="w-full h-[400px] rounded-2xl border-2 border-dashed border-border flex flex-col items-center justify-center gap-3 text-muted-foreground">
+                <FileText className="w-12 h-12 text-primary/40" />
+                <p className="text-sm font-medium">No direct PDF file has been uploaded yet from the Admin Dashboard.</p>
+                <button
+                  onClick={() => setViewMode('flipbook')}
+                  className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), "mt-2")}
+                >
+                  Switch back to 3D Flipbook
+                </button>
+              </div>
+            )}
+          </div>
+        ) : (
+          /* 3D Flipbook & Controls Stage */
+          <div className="flex flex-col lg:flex-row items-center justify-center gap-10 lg:gap-16">
+            
+            {/* Left Action & Highlights Panel */}
+            <div className="w-full lg:w-80 flex flex-col gap-6 text-left order-2 lg:order-1">
+              <div className="p-6 rounded-3xl bg-background/80 dark:bg-card/80 backdrop-blur-md border border-border/60 shadow-xl shadow-primary/5 space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold uppercase tracking-wider text-primary">Interactive Reader</span>
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                </div>
+                
+                <h3 className="text-lg font-bold text-foreground">
+                  Automatic 3D Page Curl
+                </h3>
+                <p className="text-xs text-muted-foreground font-light leading-relaxed">
+                  Pages automatically advance every 5 seconds when in view. Grab any corner or use our controls below to turn pages at your pace.
+                </p>
+
+                <div className="pt-2 flex flex-col gap-3">
                   <button
-                    key={idx}
-                    onClick={() => flipBookRef.current?.pageFlip()?.flip(idx)}
-                    className={cn(
-                      "w-2 h-2 rounded-full transition-all shrink-0",
-                      currentPage === idx 
-                        ? "w-6 bg-primary shadow-sm" 
-                        : "bg-muted-foreground/30 hover:bg-muted-foreground/60"
-                    )}
-                    title={`Jump to Page ${idx + 1}`}
-                  />
-                ))}
+                    onClick={() => setIsModalOpen(true)}
+                    className={cn(buttonVariants({ variant: 'default', size: 'lg' }), "w-full justify-center gap-2 font-semibold shadow-lg shadow-primary/20")}
+                  >
+                    <Maximize2 className="w-4 h-4" />
+                    <span>Open Fullscreen Flipbook</span>
+                  </button>
+
+                  <button
+                    onClick={handleDownload}
+                    className={cn(buttonVariants({ variant: 'outline', size: 'lg' }), "w-full justify-center gap-2 border-border/60 hover:bg-secondary/50 font-medium")}
+                  >
+                    <Download className="w-4 h-4 text-primary" />
+                    <span>Download Full Catalog (.PDF)</span>
+                  </button>
+                </div>
               </div>
 
-              <button
-                onClick={nextPage}
-                disabled={currentPage >= totalPages - 1}
-                className="flex items-center gap-1 px-4 py-2 rounded-xl border border-border/50 bg-background hover:bg-secondary/60 disabled:opacity-40 disabled:pointer-events-none text-xs font-semibold transition-all shadow-sm"
-              >
-                <span>Next</span>
-                <ChevronRight className="w-4 h-4" />
-              </button>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-4 rounded-2xl bg-background/60 border border-border/40 flex items-center gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-primary shrink-0" />
+                  <span className="text-xs font-semibold text-foreground">Export Quality Verified</span>
+                </div>
+                <div className="p-4 rounded-2xl bg-background/60 border border-border/40 flex items-center gap-3">
+                  <Sparkles className="w-5 h-5 text-primary shrink-0" />
+                  <span className="text-xs font-semibold text-foreground">OEM Tiers & Specs</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Center 3D Flipbook Showcase */}
+            <div
+              className="relative order-1 lg:order-2 flex flex-col items-center justify-center py-6 px-4 sm:px-8 rounded-3xl bg-background/40 dark:bg-black/20 backdrop-blur-xl border border-border/50 shadow-2xl max-w-full"
+              onMouseEnter={() => setIsHovered(true)}
+              onMouseLeave={() => setIsHovered(false)}
+            >
+              {/* Top Toolbar */}
+              <div className="w-full flex items-center justify-between gap-4 mb-4 px-2 text-xs font-semibold text-muted-foreground">
+                <div className="flex items-center gap-2">
+                  <span className="text-primary font-mono font-bold">Page {currentPage + 1} of {totalPages}</span>
+                  {isHovered && <span className="text-[10px] bg-secondary px-2 py-0.5 rounded-full text-foreground">Paused on Hover</span>}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setIsPaused(!isPaused)}
+                    className="p-1.5 rounded-full hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
+                    title={isPaused ? "Resume Auto-Flip" : "Pause Auto-Flip"}
+                  >
+                    {isPaused ? <Play className="w-4 h-4 text-primary" /> : <Pause className="w-4 h-4" />}
+                  </button>
+                  <button
+                    onClick={() => setIsModalOpen(true)}
+                    className="p-1.5 rounded-full hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
+                    title="Fullscreen View"
+                  >
+                    <Maximize2 className="w-4 h-4 text-primary" />
+                  </button>
+                </div>
+              </div>
+
+              {/* The HTMLFlipBook Engine with strict fixed sizing for 100% reliable 3D matrix calculation */}
+              <div className="flex items-center justify-center my-2 select-none shadow-2xl">
+                <HTMLFlipBook
+                  ref={flipBookRef}
+                  width={380}
+                  height={520}
+                  size="fixed"
+                  minWidth={300}
+                  maxWidth={500}
+                  minHeight={400}
+                  maxHeight={650}
+                  drawShadow={true}
+                  showCover={true}
+                  mobileScrollSupport={true}
+                  onFlip={handleFlip}
+                  className="rounded-2xl shadow-2xl border border-border/30"
+                  style={{}}
+                  startPage={0}
+                  flippingTime={800}
+                  usePortrait={true}
+                  startZIndex={0}
+                  autoSize={true}
+                  maxShadowOpacity={0.5}
+                  clickEventForward={true}
+                  useMouseEvents={true}
+                  swipeDistance={30}
+                  showPageCorners={true}
+                  disableFlipByClick={false}
+                >
+                  {pagesList.map((page: any, index: number) => (
+                    <BrochurePage
+                      key={index}
+                      pageNumber={index + 1}
+                      totalPages={totalPages}
+                      title={page.title}
+                      imageUrl={page.imageUrl}
+                      description={page.description}
+                      isCover={index === 0 || index === totalPages - 1}
+                    />
+                  ))}
+                </HTMLFlipBook>
+              </div>
+
+              {/* Bottom Controls Bar */}
+              <div className="w-full flex items-center justify-between gap-4 mt-6 px-2">
+                <button
+                  onClick={prevPage}
+                  disabled={currentPage === 0}
+                  className="flex items-center gap-1 px-4 py-2 rounded-xl border border-border/50 bg-background hover:bg-secondary/60 disabled:opacity-40 disabled:pointer-events-none text-xs font-semibold transition-all shadow-sm"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  <span>Prev</span>
+                </button>
+
+                <div className="flex items-center gap-1.5 overflow-x-auto py-1 max-w-[160px] sm:max-w-[220px]">
+                  {pagesList.map((_: any, idx: number) => (
+                    <button
+                      key={idx}
+                      onClick={() => {
+                        if (flipBookRef.current?.pageFlip) {
+                          flipBookRef.current.pageFlip().flip(idx)
+                        }
+                      }}
+                      className={cn(
+                        "w-2 h-2 rounded-full transition-all shrink-0",
+                        currentPage === idx 
+                          ? "w-6 bg-primary shadow-sm" 
+                          : "bg-muted-foreground/30 hover:bg-muted-foreground/60"
+                      )}
+                      title={`Jump to Page ${idx + 1}`}
+                    />
+                  ))}
+                </div>
+
+                <button
+                  onClick={nextPage}
+                  disabled={currentPage >= totalPages - 1}
+                  className="flex items-center gap-1 px-4 py-2 rounded-xl border border-border/50 bg-background hover:bg-secondary/60 disabled:opacity-40 disabled:pointer-events-none text-xs font-semibold transition-all shadow-sm"
+                >
+                  <span>Next</span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Fullscreen Modal Overlay Overlay */}
@@ -430,9 +503,9 @@ export const BrochureSection: React.FC = () => {
           {/* Fullscreen Flipbook Stage */}
           <div className="flex-1 flex items-center justify-center my-4 overflow-hidden">
             <HTMLFlipBook
-              width={480}
-              height={640}
-              size="stretch"
+              width={460}
+              height={620}
+              size="fixed"
               minWidth={320}
               maxWidth={600}
               minHeight={420}
@@ -473,7 +546,7 @@ export const BrochureSection: React.FC = () => {
           <div className="w-full flex items-center justify-between text-white pt-4 border-t border-white/10">
             <button
               onClick={() => {
-                if (flipBookRef.current?.pageFlip()) flipBookRef.current.pageFlip().flipPrev()
+                if (flipBookRef.current?.pageFlip) flipBookRef.current.pageFlip().flipPrev()
               }}
               disabled={currentPage === 0}
               className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 disabled:opacity-30 text-sm font-semibold transition-colors"
@@ -488,7 +561,7 @@ export const BrochureSection: React.FC = () => {
 
             <button
               onClick={() => {
-                if (flipBookRef.current?.pageFlip()) flipBookRef.current.pageFlip().flipNext()
+                if (flipBookRef.current?.pageFlip) flipBookRef.current.pageFlip().flipNext()
               }}
               disabled={currentPage >= totalPages - 1}
               className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 disabled:opacity-30 text-sm font-semibold transition-colors"
