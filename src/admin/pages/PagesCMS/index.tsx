@@ -123,7 +123,7 @@ export const PagesCMS: React.FC = () => {
                 badgeText: 'Interactive Flipbook Catalog',
                 heading: 'Explore Our 2026 Export Brochure',
                 subheading: 'Experience our complete product specs, export tiers, and zero-waste manufacturing lifecycle directly in your browser.',
-                pdfUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+                pdfUrl: '',
                 pages: [
                   { title: 'Cover & Vision', imageUrl: 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?q=80&w=800&auto=format&fit=crop', description: 'Zero-Waste & Plastic-Free Innovation' },
                   { title: 'Organic Bamboo Range', imageUrl: 'https://images.unsplash.com/photo-1616401784845-180882ba9ba8?q=80&w=800&auto=format&fit=crop', description: 'Certified Antimicrobial Brushes & Utensils' },

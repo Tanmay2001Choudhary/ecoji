@@ -108,7 +108,7 @@ export const api = {
   },
   pagesContent: {
     async list(pageSlug?: string) {
-      let query = supabase.from('page_contents').select('*').order('section_key', { ascending: true })
+      let query = supabase.from('page_contents').select('*').order('updated_at', { ascending: false })
       if (pageSlug) {
         query = query.eq('page_slug', pageSlug)
       }
@@ -117,7 +117,15 @@ export const api = {
         console.warn('page_contents not found or error:', error.message)
         return []
       }
-      return data || []
+      // Deduplicate: keep only the most-recently-updated row per page_slug+section_key
+      const rows = data || []
+      const seen = new Set<string>()
+      return rows.filter((row: any) => {
+        const key = `${row.page_slug}:${row.section_key}`
+        if (seen.has(key)) return false
+        seen.add(key)
+        return true
+      })
     },
     async get(pageSlug: string, sectionKey: string) {
       const { data, error } = await supabase
@@ -125,21 +133,26 @@ export const api = {
         .select('*')
         .eq('page_slug', pageSlug)
         .eq('section_key', sectionKey)
-        .single()
-      if (error && error.code !== 'PGRST116') return null
-      return data
+        .order('updated_at', { ascending: false })
+        .limit(1)
+      if (error || !data || data.length === 0) return null
+      return data[0]
     },
     async upsert(payload: { page_slug: string; section_key: string; title: string; content: any; is_active?: boolean }) {
+      const now = new Date().toISOString()
+      // Delete any existing rows for this slug+key to avoid duplicates, then insert fresh
+      await supabase
+        .from('page_contents')
+        .delete()
+        .eq('page_slug', payload.page_slug)
+        .eq('section_key', payload.section_key)
       const { data, error } = await supabase
         .from('page_contents')
-        .upsert({
-          ...payload,
-          updated_at: new Date().toISOString()
-        }, { onConflict: 'page_slug,section_key' })
+        .insert({ ...payload, updated_at: now })
         .select()
-        .single()
+        .limit(1)
       if (error) throw error
-      return data
+      return data && data.length > 0 ? data[0] : null
     },
     async uploadImage(file: File, pageSlug: string, sectionKey: string) {
       const fileName = `pages/${pageSlug}/${sectionKey}/${Date.now()}-${file.name}`
