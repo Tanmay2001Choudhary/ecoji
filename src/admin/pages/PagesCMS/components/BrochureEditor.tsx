@@ -51,6 +51,14 @@ export const BrochureEditor: React.FC<BrochureEditorProps> = ({
       setIsUploadingPdf(true)
       const url = await api.pagesContent.uploadImage(file, pageSlug, sectionKey)
       setPdfUrl(url)
+      // Auto-save the new pdfUrl to DB immediately so it persists on reload
+      await onSave({
+        badgeText,
+        heading,
+        subheading,
+        pdfUrl: url,
+        pages
+      })
     } catch (err) {
       console.error('Failed to upload PDF:', err)
       alert('Error uploading PDF file. Please verify file permissions or try again.')
@@ -208,7 +216,7 @@ export const BrochureEditor: React.FC<BrochureEditorProps> = ({
 
             <label className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gray-900 text-white text-xs font-bold cursor-pointer hover:bg-gray-800 transition-colors shadow-sm">
               <Upload className="w-4 h-4" />
-              <span>{isUploadingPdf ? 'Uploading PDF...' : pdfUrl ? 'Replace PDF Brochure File' : 'Upload PDF Brochure File'}</span>
+              <span>{isUploadingPdf ? 'Uploading & Saving...' : pdfUrl ? 'Replace PDF Brochure File' : 'Upload PDF Brochure File'}</span>
               <input type="file" accept=".pdf" onChange={handlePdfUpload} disabled={isUploadingPdf} className="hidden" />
             </label>
           </div>
